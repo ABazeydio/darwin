@@ -138,7 +138,7 @@ function BrowseContent() {
     },
     {
       label: 'Verified hubs',
-      value: '12 campuses',
+      value: '3 campuses',
       icon: <Compass size={14} />,
     },
     {
