@@ -7,7 +7,6 @@ import { ArrowDown, ArrowRight, Search, MapPin } from 'lucide-react';
 import { categories, categoryIcons, Listing } from '@/lib/data';
 import { createClient } from '@/lib/supabase/client';
 import ListingCard from '@/components/ListingCard';
-import Reviews from '@/components/Reviews';
 import AnimatedSection from '@/components/AnimatedSection';
 
 /* ── Shared easing ── */
@@ -78,7 +77,6 @@ export default function HomePage() {
                 id: sellerMeta.id,
                 name: sellerName,
                 avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
-                rating: 5.0,
                 campus: item.campus || 'Main Campus',
               },
               createdAt: item.created_at,
@@ -138,7 +136,7 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.55, ease }}
                 >
-                  A campus marketplace with clearer listings, safer meetups, and a cleaner feed — built for students.
+                  A campus marketplace with clearer listings, safer meetups, and a cleaner feed, built for students.
                 </motion.p>
 
                 <motion.div
@@ -163,7 +161,7 @@ export default function HomePage() {
                   transition={{ duration: 0.7, delay: 0.85, ease }}
                 >
                   {[
-                    { label: 'Sign-up', value: '.edu verified' },
+                    { label: 'Sign-up', value: 'University email' },
                     { label: 'Marketplace', value: 'Campus-only' },
                     { label: 'Founding spots', value: '225' },
                   ].map((item) => (
@@ -241,11 +239,6 @@ export default function HomePage() {
             </motion.div>
           </div>
         </div>
-      </section>
-
-      {/* ── REVIEWS ── */}
-      <section className="py-24 md:py-32">
-        <Reviews />
       </section>
 
       {/* ── DIVIDER ── */}
@@ -343,7 +336,7 @@ export default function HomePage() {
             {[
               { num: '01', title: 'List', desc: 'Snap a photo, set a price, and publish your listing in seconds.' },
               { num: '02', title: 'Connect', desc: 'Chat with buyers and sellers directly. All within your campus.' },
-              { num: '03', title: 'Exchange', desc: 'Meet on campus, complete the deal, and leave a review.' },
+              { num: '03', title: 'Exchange', desc: 'Meet on campus and complete the deal.' },
             ].map((step, i) => (
               <motion.div
                 key={step.num}

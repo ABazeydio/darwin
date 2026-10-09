@@ -12,7 +12,6 @@ import {
   Check,
   AlertCircle,
   Lock,
-  Bell,
   ShoppingBag,
   LogOut,
   GraduationCap,
@@ -487,53 +486,12 @@ export default function ProfileClient({ user, profile, listings }: Props) {
               </div>
             </motion.section>
 
-            {/* ── Notifications Card (Placeholder) ── */}
-            <motion.section
-              className="profile-card"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={stagger(3)}
-            >
-              <div className="profile-card-header">
-                <Bell size={18} />
-                <h3>Notifications</h3>
-              </div>
-
-              <div className="profile-placeholder-row">
-                <div className="profile-placeholder-info">
-                  <p className="profile-placeholder-title">Email Notifications</p>
-                  <p className="text-muted text-sm">
-                    Receive updates about messages and listing activity.
-                  </p>
-                </div>
-                <div className="profile-toggle profile-toggle--disabled">
-                  <div className="profile-toggle-track">
-                    <div className="profile-toggle-thumb" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="profile-placeholder-row">
-                <div className="profile-placeholder-info">
-                  <p className="profile-placeholder-title">Price Drop Alerts</p>
-                  <p className="text-muted text-sm">
-                    Get notified when items in your saved list drop in price.
-                  </p>
-                </div>
-                <div className="profile-toggle profile-toggle--disabled">
-                  <div className="profile-toggle-track">
-                    <div className="profile-toggle-thumb" />
-                  </div>
-                </div>
-              </div>
-            </motion.section>
-
             {/* ── My Postings Card ── */}
             <motion.section
               className="profile-card"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={stagger(4)}
+              transition={stagger(3)}
             >
               <div className="profile-card-header">
                 <ShoppingBag size={18} />

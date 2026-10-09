@@ -8,7 +8,6 @@ import {
   MapPin,
   ShoppingBag,
   Edit2,
-  Star,
   BookOpen,
 } from 'lucide-react';
 import Image from 'next/image';

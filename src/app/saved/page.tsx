@@ -73,7 +73,6 @@ export default function SavedPage() {
                 id: sellerMeta.id || '',
                 name: sellerName,
                 avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
-                rating: 0,
                 campus: item.campus || 'Main Campus',
               },
               createdAt: item.created_at,

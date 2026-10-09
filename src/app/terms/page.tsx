@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import PageTransition from '@/components/PageTransition';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — Darwin',
+  title: 'Terms of Service: Darwin',
   description:
     'The terms that govern your use of Darwin, the campus marketplace operated by Vesper Works.',
 };
@@ -164,7 +164,7 @@ const sections: Section[] = [
     body: [
       {
         kind: 'p',
-        text: 'We may suspend, restrict, or terminate your access to Darwin at any time, with or without notice, if you violate these Terms, create risk or legal exposure for us, or for any other reason in our reasonable discretion. You may stop using Darwin at any time and may request deletion of your account and associated personal information as described in our Privacy Policy. Provisions that by their nature should survive termination — including content licenses already granted, disclaimers, limitation of liability, indemnification, and dispute resolution — will survive.',
+        text: 'We may suspend, restrict, or terminate your access to Darwin at any time, with or without notice, if you violate these Terms, create risk or legal exposure for us, or for any other reason in our reasonable discretion. You may stop using Darwin at any time and may request deletion of your account and associated personal information as described in our Privacy Policy. Provisions that by their nature should survive termination, including content licenses already granted, disclaimers, limitation of liability, indemnification, and dispute resolution, will survive.',
       },
     ],
   },
@@ -278,7 +278,7 @@ function renderBlock(block: Block, index: number) {
                   <strong className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {item.term}
                   </strong>
-                  {' — '}
+                  {': '}
                   {item.text}
                 </>
               ) : (

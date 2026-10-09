@@ -134,7 +134,7 @@ export default function WaitlistPage() {
         : "You're on the list!";
   const shareSubtitle =
     status === 'already'
-      ? 'We already have your email — now invite friends to climb the list.'
+      ? 'We already have your email. Invite friends to climb the list.'
       : status === 'returning'
         ? 'Keep inviting friends to unlock priority access at your campus.'
         : "We'll reach out when Darwin opens at your campus.";
@@ -203,7 +203,7 @@ export default function WaitlistPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.42, ease }}
             >
-              Darwin is a campus-only marketplace where verified students buy, sell, and exchange — safely and locally. Join the waitlist to get early access.
+              Darwin is a campus-only marketplace where verified students buy, sell, and exchange locally. Join the waitlist to get early access.
             </motion.p>
 
             {/* Email form */}
@@ -320,7 +320,7 @@ export default function WaitlistPage() {
               delay={0}
               icon={<ShieldCheck size={20} />}
               title="Verified Students Only"
-              description="Sign up with your university email. Every buyer and seller is a real, verified student from your campus — no impostors, no scammers."
+              description="Sign up with your university email. Connect with other students at your campus."
               background={<VerifiedIdArt />}
             />
             <BentoCard
@@ -328,14 +328,14 @@ export default function WaitlistPage() {
               delay={0.08}
               icon={<MapPin size={20} />}
               title="Campus-Only"
-              description="Browse items from students at your school. No strangers, no shipping — just local, safe exchanges."
+              description="Browse items from students at your school. Meet on campus without arranging shipping."
             />
             <BentoCard
               span="sm"
               delay={0.16}
               icon={<Zap size={20} />}
               title="List in under a minute"
-              description="Snap a photo, set a price, and your listing is live — then meet up between classes. Built to be fast, not bloated."
+              description="Snap a photo, set a price, and your listing is live. Arrange a meetup between classes."
             />
           </BentoGrid>
 
@@ -402,7 +402,7 @@ export default function WaitlistPage() {
                 <span className="text-muted">Lock in forever.</span>
               </h2>
               <p className="waitlist-founding-copy">
-                One payment, monthly boosted listings for life — limited to 225 pre-launch spots across two tiers.
+                One payment gives you monthly boosted listings for life. Limited to 225 pre-launch spots across two tiers.
               </p>
 
               <div className="waitlist-founding-stats">
@@ -453,7 +453,7 @@ export default function WaitlistPage() {
             {[
               { num: '01', title: 'Verify', desc: 'Sign up with your university email. Darwin confirms you\'re a real student at a supported campus.' },
               { num: '02', title: 'List or Browse', desc: 'Snap a photo and post your listing in seconds, or search what\'s available near you on campus.' },
-              { num: '03', title: 'Exchange', desc: 'Agree on a campus meetup spot, complete the handoff, and leave a review. Simple and safe.' },
+              { num: '03', title: 'Exchange', desc: 'Agree on a campus meetup spot and complete the handoff.' },
             ].map((step, i) => (
               <motion.div
                 key={step.num}

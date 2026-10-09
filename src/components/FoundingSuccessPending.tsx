@@ -66,7 +66,7 @@ export default function FoundingSuccessPending({ sessionId }: Props) {
             <p className="waitlist-founding-copy text-secondary">
                 Your payment went through, but your activation code is still
                 being prepared. Refresh this page in a minute or check the email
-                Stripe sent for your receipt — then contact support if the code
+                Stripe sent for your receipt. Contact support if the code
                 still doesn&apos;t appear.
             </p>
         );
@@ -74,7 +74,7 @@ export default function FoundingSuccessPending({ sessionId }: Props) {
 
     return (
         <p className="waitlist-founding-copy text-secondary">
-            Payment received — generating your activation code&hellip;
+            Payment received. Generating your activation code&hellip;
         </p>
     );
 }

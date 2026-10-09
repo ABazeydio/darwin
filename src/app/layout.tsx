@@ -26,18 +26,18 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Darwin — Campus Marketplace',
+  title: 'Darwin: Campus Marketplace',
   description: 'The marketplace for verified college students. Buy, sell, and trade safely with real students on your campus.',
   metadataBase: new URL('https://darwinmarketplace.ca'),
   openGraph: {
-    title: 'Darwin — Campus Marketplace',
+    title: 'Darwin: Campus Marketplace',
     description: 'The marketplace for verified college students. Buy, sell, and trade safely with real students on your campus.',
     siteName: 'Darwin',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Darwin — Campus Marketplace',
+    title: 'Darwin: Campus Marketplace',
     description: 'The marketplace for verified college students. Buy, sell, and trade safely with real students on your campus.',
   },
 };

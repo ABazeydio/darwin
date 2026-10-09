@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Heart,
   MapPin,
-  Star,
   Share2,
   Shield,
   Clock,
@@ -104,7 +103,6 @@ export default function ListingDetailPage({
               id: sellerMeta.id || '',
               name: sellerName,
               avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
-              rating: 0,
               campus: data.campus || 'Main Campus',
             },
             createdAt: data.created_at,
@@ -328,15 +326,6 @@ export default function ListingDetailPage({
                     {listing.seller.name}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
-                    {listing.seller.rating && listing.seller.rating > 0 ? (
-                      <>
-                        <span className="flex items-center gap-1 text-sm">
-                          <Star size={13} fill="#facc15" color="#facc15" />
-                          <span className="text-white/80">{listing.seller.rating}</span>
-                        </span>
-                        <span className="text-white/20">|</span>
-                      </>
-                    ) : null}
                     <span className="flex items-center gap-1 text-muted text-sm">
                       <MapPin size={13} />
                       {listing.seller.campus}

@@ -635,7 +635,7 @@ export default function OnboardingWizard({ next }: { next?: string }) {
                       >
                         {email.trim() && !emailDomainValid
                           ? `The email address does not match the selected institution. Use your @${SCHOOL_EMAIL_DOMAINS[university]} address.`
-                          : `Use your ${SCHOOLS.find((s) => s.id === university)?.name} email — @${SCHOOL_EMAIL_DOMAINS[university]}`}
+                          : `Use your ${SCHOOLS.find((s) => s.id === university)?.name} email: @${SCHOOL_EMAIL_DOMAINS[university]}`}
                       </p>
                     )}
                   </motion.div>

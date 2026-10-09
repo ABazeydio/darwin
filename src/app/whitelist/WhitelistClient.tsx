@@ -148,7 +148,7 @@ export default function WhitelistClient({ spots }: Props) {
                         >
                             A limited pre-launch tier for Darwin&apos;s earliest
                             members. One payment, monthly boosts, yours for
-                            life — no subscription, no expiry.
+                            life, with no subscription or expiry.
                         </motion.p>
 
                         <motion.div
@@ -300,8 +300,7 @@ export default function WhitelistClient({ spots }: Props) {
                         <p className="section-copy mt-5 max-w-2xl">
                             Founding tiers are Darwin&apos;s way of thanking
                             the people who showed up first. They&apos;re
-                            one-time, limited, and permanent — no renewals, no
-                            catches.
+                            available for a one-time payment, with no renewals.
                         </p>
 
                         <div className="whitelist-bottom-cta-row">

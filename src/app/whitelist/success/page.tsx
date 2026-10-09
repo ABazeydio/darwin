@@ -201,7 +201,7 @@ export default async function WhitelistSuccessPage({
                                         className="whitelist-success-check"
                                     />
                                     <span>
-                                        No renewals, no subscription — this is
+                                        No renewals or subscription. This is
                                         yours forever.
                                     </span>
                                 </li>

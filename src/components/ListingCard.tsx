@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, MapPin, Star } from 'lucide-react';
+import { Heart, MapPin } from 'lucide-react';
 import { Listing, getConditionClass } from '@/lib/data';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -28,7 +28,6 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
   const [pending, setPending] = useState(false);
 
   const isDbListing = UUID_RE.test(listing.id);
-  const hasRating = typeof listing.seller.rating === 'number' && listing.seller.rating > 0;
 
   const handleSaveToggle = useCallback(
     async (e: React.MouseEvent) => {
@@ -148,12 +147,6 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
                   </div>
                   <div className="card-seller-info">
                     <span className="card-seller-name">{listing.seller.name.split(' ')[0]}</span>
-                    {hasRating && (
-                      <div className="card-seller-rating">
-                        <Star size={10} fill="#facc15" color="#facc15" />
-                        <span>{listing.seller.rating}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ) : (

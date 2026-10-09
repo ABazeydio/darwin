@@ -56,7 +56,6 @@ export default async function PublicProfilePage({
                 id: profile.id,
                 name: profile.full_name || profile.first_name || 'Student',
                 avatar: profile.avatar_url || '/avatars/1.jpg',
-                rating: 0,
                 campus: l.campus ?? 'Main Campus',
             },
             createdAt: l.created_at,
