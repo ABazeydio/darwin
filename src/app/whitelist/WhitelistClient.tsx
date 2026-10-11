@@ -46,7 +46,7 @@ const PRO_BENEFITS: Benefit[] = [
         tooltipPhrase: "Founding Pro badge",
         preview: <FoundingBadge tier="founding_pro" />,
     },
-    { text: "Priority support during the pre-launch period" },
+    { text: "Priority support during launch" },
     { text: "Early access to every upcoming feature" },
 ];
 
@@ -73,7 +73,7 @@ const STEPS = [
     {
         num: "01",
         title: "Claim your spot",
-        desc: "Secure a Founding tier with a one-time payment before spots run out.",
+        desc: "Choose a Founding tier with a one-time payment.",
     },
     {
         num: "02",
@@ -100,9 +100,6 @@ export default function WhitelistClient({ spots }: Props) {
         offset: ["start start", "end start"],
     });
     const orbY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
-
-    const totalSpots =
-        TIERS.founding_member.maxSpots + TIERS.founding_pro.maxSpots;
 
     return (
         <div className="waitlist-page">
@@ -146,8 +143,7 @@ export default function WhitelistClient({ spots }: Props) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, delay: 0.42, ease }}
                         >
-                            A limited pre-launch tier for Darwin&apos;s earliest
-                            members. One payment, monthly boosts, yours for
+                            Founding tiers for Darwin&apos;s earliest members. One payment, monthly boosts, yours for
                             life, with no subscription or expiry.
                         </motion.p>
 
@@ -169,7 +165,6 @@ export default function WhitelistClient({ spots }: Props) {
                                     </a>
                                 </div>
                                 <p className="waitlist-helper">
-                                    {totalSpots} total spots ·{" "}
                                     <span className="waitlist-helper-accent">
                                         one-time payment
                                     </span>{" "}
@@ -195,7 +190,7 @@ export default function WhitelistClient({ spots }: Props) {
                         <h2 className="section-title-md mt-4">
                             Two tiers.
                             <br />
-                            <span className="text-muted">Limited spots.</span>
+                            <span className="text-muted">Lasting benefits.</span>
                         </h2>
                     </motion.div>
 
@@ -351,12 +346,7 @@ function TierCard({
     delay?: number;
 }) {
     const tier = TIERS[tierKey];
-    const remaining = Math.max(0, spot.total - spot.sold);
-    const soldOut = remaining === 0;
-    const progressPct =
-        spot.total > 0
-            ? Math.max(0, Math.min(100, (spot.sold / spot.total) * 100))
-            : 0;
+    const soldOut = spot.sold >= spot.total;
 
     return (
         <motion.div
@@ -404,29 +394,6 @@ function TierCard({
                     </li>
                 ))}
             </ul>
-
-            <div className="relative z-10 mb-6">
-                <div className="flex items-center justify-between text-xs text-muted mb-2.5">
-                    <span>
-                        <NumberTicker value={remaining} /> of {spot.total} spots left
-                    </span>
-                    <span>
-                        <NumberTicker value={Math.round(progressPct)} suffix="%" /> claimed
-                    </span>
-                </div>
-                <div
-                    className="whitelist-progress"
-                    role="progressbar"
-                    aria-valuenow={spot.sold}
-                    aria-valuemin={0}
-                    aria-valuemax={spot.total}
-                >
-                    <div
-                        className="whitelist-progress-fill"
-                        style={{ width: `${progressPct}%` }}
-                    />
-                </div>
-            </div>
 
             {soldOut ? (
                 <button
