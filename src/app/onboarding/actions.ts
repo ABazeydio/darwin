@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isSignupPasswordValid, PASSWORD_REQUIREMENTS } from "@/lib/password-validation";
 
 const EMAIL_ALREADY_REGISTERED = "Email already registered";
 
@@ -26,7 +27,8 @@ const SCHOOL_NAMES: Record<string, string> = {
 function emailMatchesSchool(email: string, schoolId: string): boolean {
   const domain = SCHOOL_EMAIL_DOMAINS[schoolId];
   if (!domain) return false;
-  return email.trim().toLowerCase().endsWith("@" + domain);
+  const normalizedEmail = email.trim().toLowerCase();
+  return normalizedEmail.endsWith("@" + domain);
 }
 
 // Only allow single-slash internal paths — no protocol-relative or absolute
@@ -73,6 +75,9 @@ interface OnboardingData {
 }
 
 export async function createAccountAndProfile(data: OnboardingData) {
+  if (!isSignupPasswordValid(data.password)) {
+    return { error: PASSWORD_REQUIREMENTS };
+  }
   const supabase = await createClient();
 
   // ── Institution / email domain guard ─────────────────────────────────────
@@ -94,7 +99,7 @@ export async function createAccountAndProfile(data: OnboardingData) {
 
   // 1. Create the Supabase auth account
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: data.email,
+    email: data.email.trim().toLowerCase(),
     password: data.password,
     options: {
       data: {
@@ -130,8 +135,6 @@ export async function createAccountAndProfile(data: OnboardingData) {
   // 2. If email verification is required, there's no session yet
   if (!authData.session) {
     return {
-      error:
-        "Check your email to verify your account, then sign in to complete setup.",
       needsVerification: true,
     };
   }

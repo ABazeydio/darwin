@@ -103,7 +103,6 @@ export default function HomePage() {
                   {[
                     { label: 'Sign-up', value: 'University email' },
                     { label: 'Marketplace', value: 'Campus-only' },
-                    { label: 'Founding spots', value: '225' },
                   ].map((item) => (
                     <div key={item.label} className="home-proof">
                       <div className="home-proof-label">{item.label}</div>

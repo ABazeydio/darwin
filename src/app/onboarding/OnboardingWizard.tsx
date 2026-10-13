@@ -25,6 +25,8 @@ import {
   EyeOff,
 } from "lucide-react";
 import { createAccountAndProfile } from "./actions";
+import VerificationDialog from "@/components/VerificationDialog";
+import { isSignupPasswordValid, PASSWORD_REQUIREMENTS } from "@/lib/password-validation";
 
 /* ── Constants ── */
 
@@ -189,6 +191,7 @@ export default function OnboardingWizard({ next }: { next?: string }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const [error, setError] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
   const progress = ((step + 1) / TOTAL_STEPS) * 100;
 
@@ -236,8 +239,8 @@ export default function OnboardingWizard({ next }: { next?: string }) {
       );
       return;
     }
-    if (!password || password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (!isSignupPasswordValid(password)) {
+      setError(PASSWORD_REQUIREMENTS);
       return;
     }
 
@@ -253,7 +256,11 @@ export default function OnboardingWizard({ next }: { next?: string }) {
         password,
         next,
       });
-      if (result?.error) {
+      if (result?.needsVerification) {
+        setError("");
+        setPassword("");
+        setVerificationEmail(email.trim().toLowerCase());
+      } else if (result?.error) {
         setError(result.error);
       }
     });
@@ -273,6 +280,9 @@ export default function OnboardingWizard({ next }: { next?: string }) {
 
   return (
     <div className="onboarding-shell">
+      {verificationEmail && (
+        <VerificationDialog email={verificationEmail} next={next} onClose={() => setVerificationEmail(null)} />
+      )}
       {/* ── Background Effects ── */}
       <div className="auth-shell__backdrop" aria-hidden="true">
         <span className="auth-shell__orb" />
@@ -598,6 +608,8 @@ export default function OnboardingWizard({ next }: { next?: string }) {
                           if (error) setError("");
                         }}
                         autoComplete="new-password"
+                        minLength={8}
+                        aria-describedby="ob-password-requirements"
                       />
                       <button
                         type="button"
@@ -614,8 +626,8 @@ export default function OnboardingWizard({ next }: { next?: string }) {
                         )}
                       </button>
                     </div>
-                    <p className="auth-form-helper text-muted">
-                      At least 6 characters.
+                    <p id="ob-password-requirements" className="auth-form-helper text-muted">
+                      {PASSWORD_REQUIREMENTS}
                     </p>
                   </motion.div>
                 </>
@@ -702,7 +714,7 @@ export default function OnboardingWizard({ next }: { next?: string }) {
                 type="button"
                 className="pill-btn"
                 onClick={handleSubmit}
-                disabled={isPending || !emailDomainValid || !email.trim() || !password || password.length < 6}
+                disabled={isPending || !emailDomainValid || !email.trim() || !isSignupPasswordValid(password)}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >

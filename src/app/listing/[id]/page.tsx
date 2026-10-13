@@ -10,7 +10,6 @@ import {
   Clock,
   Pencil,
 } from 'lucide-react';
-import FoundingBadge from '@/components/FoundingBadge';
 import BoostListingButton from '@/components/BoostListingButton';
 import { loadBoostStatus } from '@/app/profile/founding-actions';
 import type { BoostStatus } from '@/lib/boost-types';
@@ -322,7 +321,6 @@ export default function ListingDetailPage({
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[15px] group-hover:text-white transition-colors">
                     {listing.seller.name}
-                    <FoundingBadge tier={listing.seller.tier} />
                   </p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="flex items-center gap-1 text-muted text-sm">
