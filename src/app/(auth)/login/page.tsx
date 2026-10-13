@@ -90,7 +90,7 @@ function LoginContent() {
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
-          <p className="auth-form-helper text-muted">At least 8 characters with a mix of letters and numbers.</p>
+          <Link href="/forgot-password" className="auth-form-helper text-secondary inline-block">Forgot your password?</Link>
         </div>
 
         <p

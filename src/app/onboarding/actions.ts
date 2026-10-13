@@ -102,6 +102,7 @@ export async function createAccountAndProfile(data: OnboardingData) {
     email: data.email.trim().toLowerCase(),
     password: data.password,
     options: {
+      emailRedirectTo: `${(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "")}/auth/callback?next=${encodeURIComponent(safeNext(data.next) ?? "/browse")}`,
       data: {
         first_name: data.firstName,
         last_name: data.lastName || null,

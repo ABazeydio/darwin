@@ -99,7 +99,7 @@ export async function sendPasswordResetEmail() {
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: `${getSiteUrl()}/auth/callback?next=/profile`,
+        redirectTo: `${getSiteUrl()}/auth/callback?next=/reset-password`,
     });
 
     if (error) {
