@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -8,6 +8,9 @@ import { ArrowUpRight, Compass, Search, Sparkles, X } from 'lucide-react';
 import { categories, Category, Listing } from '@/lib/data';
 import { createClient } from '@/lib/supabase/client';
 import ListingCard from '@/components/ListingCard';
+import { fetchMarketplace } from '@/lib/marketplace-query';
+import { mapMarketplaceListing, type MarketplaceRow } from '@/lib/marketplace';
+import { earliestBoostExpiry, useMarketplaceRefresh } from '@/lib/use-marketplace-refresh';
 import SkeletonCard from '@/components/SkeletonCard';
 import PageTransition from '@/components/PageTransition';
 
@@ -19,114 +22,62 @@ function BrowseContent() {
 
   const [query, setQuery] = useState('');
   const [selectedCat, setSelectedCat] = useState<Category | 'All'>(initialCat || 'All');
-  const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high'>('newest');
+  const [sortBy, setSortBy] = useState<'recommended' | 'newest' | 'price-low' | 'price-high'>('recommended');
   const [dbListings, setDbListings] = useState<Listing[]>([]);
 
-  useEffect(() => {
-    async function fetchListings() {
-      try {
-        const supabase = createClient();
+  const [pageCount, setPageCount] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const request = useRef(0);
+  const campus = searchParams.get('campus');
 
-        // Fetch listings and saved IDs in parallel
-        const [listingsResult, savedResult] = await Promise.all([
-          supabase
-            .from('listings')
-            .select(`
-              id,
-              title,
-              description,
-              price,
-              category,
-              condition,
-              campus,
-              image_url,
-              created_at,
-              seller:profiles (
-                id,
-                first_name,
-                full_name,
-                avatar_url
-              )
-            `)
-            .order('created_at', { ascending: false }),
-          fetch('/api/saved').then((r) => r.json()).catch(() => ({ savedIds: [] })),
-        ]);
-
-        if (listingsResult.error) {
-          console.error('Error fetching listings:', listingsResult.error);
-          return;
-        }
-
-        const savedIds = new Set<string>(savedResult.savedIds ?? []);
-
-        if (listingsResult.data) {
-          const mapped: Listing[] = listingsResult.data
-            .map((item: any) => {
-              const sellerRaw = item.seller;
-              const sellerMeta = Array.isArray(sellerRaw)
-                ? sellerRaw[0] ?? {}
-                : sellerRaw ?? {};
-              return { item, sellerMeta };
-            })
-            .filter(({ sellerMeta }) => !!sellerMeta.id)
-            .map(({ item, sellerMeta }) => {
-            const sellerName = sellerMeta.full_name || sellerMeta.first_name || 'Student';
-            return {
-              id: item.id,
-              title: item.title,
-              price: item.price,
-              category: (item.category as any) || 'Other',
-              condition: (item.condition as any) || 'New',
-              description: item.description || '',
-              image: item.image_url || '/images/textbook.svg',
-              seller: {
-                id: sellerMeta.id,
-                name: sellerName,
-                avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
-                campus: item.campus || 'Main Campus',
-              },
-              createdAt: item.created_at,
-              saved: savedIds.has(item.id),
-            };
-          });
-          setDbListings(mapped);
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
+  const fetchListings = useCallback(async () => {
+    const version = ++request.current;
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      // Fetch every loaded page using the same filters; the database ranks
+      // before pagination. Ignore stale requests when filters change.
+      const [pages, saved] = await Promise.all([
+        Promise.all(Array.from({ length: pageCount }, (_, i) => fetchMarketplace(supabase, {
+          query: query.trim(), category: selectedCat === 'All' ? null : selectedCat,
+          campus, sort: sortBy, limit: 24, offset: i * 24,
+        }))),
+        fetch('/api/saved').then((r) => r.json()).catch(() => ({ savedIds: [] })),
+      ]);
+      if (request.current !== version) return;
+      if (pages.some((page) => page.error)) {
+        setLoadError('Listings could not be loaded. Please try again.');
+        return;
       }
-    }
+      const rows = pages.flatMap((page) => (page.data ?? []) as MarketplaceRow[]);
+      const savedIds = new Set<string>(saved.savedIds ?? []);
+      const unique = new Map(rows.map((row) => [row.listing.id, mapMarketplaceListing(row, savedIds)]));
+      setDbListings([...unique.values()]);
+      setTotal(Number(rows[0]?.total_count ?? 0));
+      setLoadError('');
+    } catch {
+      if (request.current === version) setLoadError('Listings could not be loaded. Please try again.');
+    } finally { if (request.current === version) setLoading(false); }
+  }, [query, selectedCat, sortBy, campus, pageCount]);
 
-    fetchListings();
-  }, []);
+  const invalidate = useCallback(() => { request.current++; }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void fetchListings(); }, 200);
+    return () => { window.clearTimeout(timer); invalidate(); };
+  }, [fetchListings, invalidate]);
+  useMarketplaceRefresh(fetchListings, earliestBoostExpiry(dbListings), dbListings[0]?.serverNow);
 
-  const filtered = useMemo(() => {
-    let results = [...dbListings];
-
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      results = results.filter(
-        (listing) =>
-          listing.title.toLowerCase().includes(q) || listing.description.toLowerCase().includes(q)
-      );
-    }
-
-    if (selectedCat !== 'All') {
-      results = results.filter((listing) => listing.category === selectedCat);
-    }
-
-    switch (sortBy) {
-      case 'price-low':
-        results.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        results.sort((a, b) => b.price - a.price);
-        break;
-      default:
-        results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
-
-    return results;
-  }, [query, selectedCat, sortBy, dbListings]);
+  function changeFilters(update: () => void) {
+    request.current++;
+    setPageCount(1);
+    setDbListings([]);
+    setTotal(0);
+    setLoading(true);
+    update();
+  }
+  const filtered = dbListings;
 
   const heroListing = filtered[0];
 
@@ -269,7 +220,7 @@ function BrowseContent() {
                   type="text"
                   placeholder="Search by item, course, brand, or keyword"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => changeFilters(() => setQuery(e.target.value))}
                   className="browse-search-input"
                 />
               </div>
@@ -277,9 +228,10 @@ function BrowseContent() {
               <div className="browse-controls-meta">
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  onChange={(e) => changeFilters(() => setSortBy(e.target.value as typeof sortBy))}
                   className="vspr-select browse-sort-select"
                 >
+                  <option value="recommended">Recommended</option>
                   <option value="newest">Newest First</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
@@ -300,7 +252,8 @@ function BrowseContent() {
             </div>
           </motion.section>
 
-          {filtered.length > 0 ? (
+          {loadError && <div role="alert" className="text-secondary mb-5">{loadError} <button type="button" className="pill-btn pill-btn-sm" onClick={() => void fetchListings()}>Retry</button></div>}
+          {loading && filtered.length === 0 ? <div className="browse-results-grid">{Array.from({ length: 4 }, (_, i) => <SkeletonCard key={i} />)}</div> : filtered.length > 0 ? (
             <>
               <motion.div
                 className="browse-results-header"
@@ -310,12 +263,12 @@ function BrowseContent() {
               >
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <p className="browse-results-count">
-                    {filtered.length} listing{filtered.length !== 1 ? 's' : ''}
+                    {total} listing{total !== 1 ? 's' : ''}
                   </p>
                   {selectedCat !== 'All' && (
                     <button
                       className="browse-active-filter"
-                      onClick={() => setSelectedCat('All')}
+                      onClick={() => changeFilters(() => setSelectedCat('All'))}
                     >
                       {selectedCat}
                       <span className="browse-active-filter-clear">
@@ -326,7 +279,7 @@ function BrowseContent() {
                   {query.trim() && (
                     <button
                       className="browse-active-filter"
-                      onClick={() => setQuery('')}
+                      onClick={() => changeFilters(() => setQuery(''))}
                     >
                       &ldquo;{query}&rdquo;
                       <span className="browse-active-filter-clear">
@@ -350,6 +303,7 @@ function BrowseContent() {
                   />
                 ))}
               </section>
+              {filtered.length < total && <button type="button" className="pill-btn pill-btn-outline mt-6" disabled={loading} onClick={() => setPageCount((count) => count + 1)}>{loading ? 'Loading…' : 'Load more listings'}</button>}
             </>
           ) : (
             <motion.section
@@ -380,7 +334,7 @@ function BrowseContent() {
               {hasActiveFilters && (
                 <button
                   className="pill-btn pill-btn-outline pill-btn-sm mt-6"
-                  onClick={() => { setSelectedCat('All'); setQuery(''); }}
+                  onClick={() => changeFilters(() => { setSelectedCat('All'); setQuery(''); })}
                 >
                   Clear All Filters
                 </button>

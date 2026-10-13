@@ -1,6 +1,7 @@
 // ── Darwin Marketplace Data Layer ──
 
 import React from 'react';
+import type { TierKey } from '@/lib/whitelist';
 import { Book, Laptop, Armchair, Shirt, Ticket, NotebookText, Dumbbell, Package } from 'lucide-react';
 
 export type Category =
@@ -16,6 +17,8 @@ export type Category =
 export type Condition = 'New' | 'Like New' | 'Good' | 'Fair';
 
 export interface Listing {
+  boostedUntil?: string | null;
+  serverNow?: string;
   id: string;
   title: string;
   price: number;
@@ -24,6 +27,7 @@ export interface Listing {
   description: string;
   image: string;
   seller: {
+    tier?: TierKey | null;
     id?: string;
     name: string;
     avatar: string;

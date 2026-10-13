@@ -28,14 +28,9 @@ const MEMBER_BENEFITS: Benefit[] = [
     { text: "1 boosted listing every month, forever" },
     { text: "Early access to marketplace features" },
     {
-        text: "Founding-member status preserved in your profile",
-        tooltipPhrase: "Founding-member status",
-        preview: (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent)]/35 bg-[var(--accent)]/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--accent)]">
-                <Sparkles size={11} />
-                Founding Member
-            </span>
-        ),
+        text: "Founding Member badge on your profile",
+        tooltipPhrase: "Founding Member badge",
+        preview: <FoundingBadge tier="founding_member" />,
     },
 ];
 
@@ -78,7 +73,7 @@ const STEPS = [
     {
         num: "02",
         title: "Get boosts monthly",
-        desc: "Your monthly boost allowance resets automatically, forever. No subscription to manage.",
+        desc: "Your allowance resets every month in UTC. Each boost promotes a listing for 7 days, with no subscription to manage.",
     },
     {
         num: "03",
@@ -168,7 +163,7 @@ export default function WhitelistClient({ spots }: Props) {
                                     <span className="waitlist-helper-accent">
                                         one-time payment
                                     </span>{" "}
-                                    · no account required
+                                    · applied to your account after checkout
                                 </p>
                             </div>
                         </motion.div>

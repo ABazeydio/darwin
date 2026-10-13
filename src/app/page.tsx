@@ -1,11 +1,14 @@
 'use client';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowDown, ArrowRight, Search, MapPin } from 'lucide-react';
 import { categories, categoryIcons, Listing } from '@/lib/data';
 import { createClient } from '@/lib/supabase/client';
+import { fetchMarketplace } from '@/lib/marketplace-query';
+import { mapMarketplaceListing, type MarketplaceRow } from '@/lib/marketplace';
+import { earliestBoostExpiry, useMarketplaceRefresh } from '@/lib/use-marketplace-refresh';
 import ListingCard from '@/components/ListingCard';
 import AnimatedSection from '@/components/AnimatedSection';
 
@@ -22,76 +25,13 @@ export default function HomePage() {
 
   const [dbListings, setDbListings] = useState<Listing[]>([]);
 
-  useEffect(() => {
-    async function fetchListings() {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('listings')
-          .select(`
-            id,
-            title,
-            description,
-            price,
-            category,
-            condition,
-            campus,
-            image_url,
-            created_at,
-            seller:profiles (
-              id,
-              first_name,
-              full_name,
-              avatar_url
-            )
-          `)
-          .order('created_at', { ascending: false })
-          .limit(4);
-
-        if (error) {
-          console.error('Error fetching listings:', error);
-          return;
-        }
-
-        if (data) {
-          const mapped: Listing[] = data
-            .map((item: any) => {
-              const sellerRaw = item.seller;
-              const sellerMeta = Array.isArray(sellerRaw)
-                ? sellerRaw[0] ?? {}
-                : sellerRaw ?? {};
-              return { item, sellerMeta };
-            })
-            .filter(({ sellerMeta }) => !!sellerMeta.id)
-            .map(({ item, sellerMeta }) => {
-            const sellerName = sellerMeta.full_name || sellerMeta.first_name || 'Student';
-            return {
-              id: item.id,
-              title: item.title,
-              price: item.price,
-              category: (item.category as any) || 'Other',
-              condition: (item.condition as any) || 'New',
-              description: item.description || '',
-              image: item.image_url || '/images/textbook.svg',
-              seller: {
-                id: sellerMeta.id,
-                name: sellerName,
-                avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
-                campus: item.campus || 'Main Campus',
-              },
-              createdAt: item.created_at,
-              saved: false,
-            };
-          });
-          setDbListings(mapped);
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-      }
-    }
-
-    fetchListings();
+  const fetchListings = useCallback(async () => {
+    const supabase = createClient();
+    const { data, error } = await fetchMarketplace(supabase, { limit: 4 });
+    if (!error && data) setDbListings((data as MarketplaceRow[]).map((row) => mapMarketplaceListing(row)));
   }, []);
+  useEffect(() => { const timer = window.setTimeout(() => { void fetchListings(); }, 0); return () => window.clearTimeout(timer); }, [fetchListings]);
+  useMarketplaceRefresh(fetchListings, earliestBoostExpiry(dbListings), dbListings[0]?.serverNow);
 
   const featuredListings = dbListings.slice(0, 4);
 

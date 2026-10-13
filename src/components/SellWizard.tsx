@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
 import { createListing, updateListing } from "@/app/sell/actions";
 import { categories } from "@/lib/data";
+import { parseListingPrice, formatListingPrice } from "@/lib/listing-price";
 import ImageUploader from "@/components/ImageUploader";
 
 /* ── Constants ── */
@@ -130,12 +131,11 @@ export default function SellWizard({
 
   const progress = ((step + 1) / TOTAL_STEPS) * 100;
 
-  const priceNum = Number(price);
+  const priceNum = parseListingPrice(price);
   const basicsValid =
     title.trim().length > 0 &&
     price.trim().length > 0 &&
-    Number.isFinite(priceNum) &&
-    priceNum > 0;
+    priceNum !== null;
 
   /* ── Navigation ── */
 
@@ -174,7 +174,7 @@ export default function SellWizard({
     startTransition(async () => {
       const payload = {
         title: title.trim(),
-        price: priceNum,
+        price: priceNum ?? 0,
         imageUrls,
         condition,
         category,
@@ -315,24 +315,29 @@ export default function SellWizard({
                     <label htmlFor="sw-price" className="onboarding-label">
                       Price <span className="onboarding-required">*</span>
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted font-mono text-sm">
-                        $
-                      </span>
+                    <div className="listing-price-field">
+                      <span className="listing-price-symbol" aria-hidden="true">$</span>
                       <input
                         id="sw-price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        className="vspr-input pl-8 font-mono"
+                        type="text"
+                        inputMode="decimal"
+                        className="listing-price-input"
                         placeholder="0.00"
+                        maxLength={16}
+                        aria-describedby="sw-price-hint"
                         value={price}
                         onChange={(e) => {
-                          setPrice(e.target.value);
+                          const next = e.target.value.replace(/[$,]/g, '').trim();
+                          if (/^\d*(?:\.\d{0,2})?$/.test(next)) setPrice(next);
                           if (error) setError("");
                         }}
+                        onBlur={() => { if (priceNum !== null) setPrice(priceNum.toFixed(2)); }}
                       />
+                      <span className="listing-price-currency">CAD</span>
                     </div>
+                    <p id="sw-price-hint" className="auth-form-helper text-secondary">
+                      {priceNum !== null ? 'Buyers will see ' + formatListingPrice(priceNum) + ' CAD.' : 'Set your asking price in Canadian dollars, with up to two decimal places.'}
+                    </p>
                   </motion.div>
                 </>
               )}

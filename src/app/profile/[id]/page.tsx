@@ -14,7 +14,7 @@ export default async function PublicProfilePage({
     // Fetch profile data
     const { data: profile } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, full_name, bio, avatar_url, school, level_of_study, program, interests, created_at")
+        .select("id, first_name, last_name, full_name, bio, avatar_url, school, level_of_study, program, interests, created_at, whitelist_tier")
         .eq("id", id)
         .maybeSingle();
 
@@ -25,8 +25,9 @@ export default async function PublicProfilePage({
     // Fetch user's listings
     const { data: listings } = await supabase
         .from("listings")
-        .select("id, title, price, category, condition, campus, image_url, created_at")
+        .select("*")
         .eq("user_id", id)
+        .eq("status", "active")
         .order("created_at", { ascending: false });
 
     // Check if logged in user is viewing their own profile
@@ -43,7 +44,7 @@ export default async function PublicProfilePage({
     const isOwnProfile = currentUserId === id;
 
     // Map listings to match Listing interface from lib/data
-    const mappedListings: Listing[] = (listings ?? []).map((l: any) => {
+    const mappedListings: Listing[] = (listings ?? []).map((l) => {
         return {
             id: l.id,
             title: l.title,
@@ -57,8 +58,10 @@ export default async function PublicProfilePage({
                 name: profile.full_name || profile.first_name || 'Student',
                 avatar: profile.avatar_url || '/avatars/1.jpg',
                 campus: l.campus ?? 'Main Campus',
+                tier: profile.whitelist_tier,
             },
             createdAt: l.created_at,
+            boostedUntil: l.boosted_until,
             saved: false, // Default to false; saved state will be checked on individual cards or client-side if needed
         };
     });
@@ -67,6 +70,7 @@ export default async function PublicProfilePage({
         <PublicProfileClient
             profile={{
                 id: profile.id,
+                tier: profile.whitelist_tier,
                 firstName: profile.first_name ?? "",
                 lastName: profile.last_name ?? "",
                 fullName: profile.full_name ?? "",

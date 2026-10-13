@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileClient from "./ProfileClient";
+import { getBoostStatus } from "@/lib/boost";
 
 export default async function ProfilePage() {
     const supabase = await createClient();
@@ -16,19 +17,20 @@ export default async function ProfilePage() {
     // Fetch profile data
     const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name, full_name, bio, avatar_url, school")
+        .select("first_name, last_name, full_name, bio, avatar_url, school, whitelist_tier")
         .eq("id", user.id)
         .maybeSingle();
 
     // Fetch user's listings
     const { data: listings } = await supabase
         .from("listings")
-        .select("id, title, price, category, condition, campus, image_url, created_at")
+        .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
     return (
         <ProfileClient
+            benefits={await getBoostStatus()}
             user={{
                 id: user.id,
                 email: user.email ?? "",
@@ -41,8 +43,9 @@ export default async function ProfilePage() {
                 bio: profile?.bio ?? "",
                 avatarUrl: profile?.avatar_url ?? "",
                 school: profile?.school ?? "",
+                tier: profile?.whitelist_tier ?? null,
             }}
-            listings={(listings ?? []).map((l: any) => ({
+            listings={(listings ?? []).map((l) => ({
                 id: l.id,
                 title: l.title,
                 price: l.price,
@@ -51,6 +54,8 @@ export default async function ProfilePage() {
                 campus: l.campus ?? "",
                 imageUrl: l.image_url ?? "/images/textbook.svg",
                 createdAt: l.created_at,
+                status: l.status,
+                boostedUntil: l.boosted_until,
             }))}
         />
     );

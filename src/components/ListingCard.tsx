@@ -6,6 +6,9 @@ import { Listing, getConditionClass } from '@/lib/data';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import FoundingBadge from '@/components/FoundingBadge';
+import { isBoostActive } from '@/lib/boost-types';
+import { useBoostClock } from '@/lib/use-marketplace-refresh';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -26,6 +29,7 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
   const isBrowse = variant === 'browse';
   const [saved, setSaved] = useState(listing.saved);
   const [pending, setPending] = useState(false);
+  const now = useBoostClock(listing.serverNow);
 
   const isDbListing = UUID_RE.test(listing.id);
 
@@ -91,6 +95,7 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
             {/* Bottom gradient overlay with category badge */}
             <div className="listing-image-meta">
               <span className="category-badge">{listing.category}</span>
+              {isBoostActive(listing.boostedUntil, now) && <span className="boosted-label">Boosted</span>}
             </div>
             {/* Save button */}
             <motion.button
@@ -118,6 +123,7 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
             <h3 className={`font-semibold leading-snug tracking-tight line-clamp-2 ${isBrowse ? 'browse-listing-title' : 'text-sm'}`}>
               {listing.title}
             </h3>
+            <FoundingBadge tier={listing.seller.tier} />
 
             <div className={`mt-auto flex items-end justify-between gap-3 pt-2 ${isBrowse ? 'browse-listing-footer' : ''}`}>
               <span className={`price-tag ${isBrowse ? 'browse-listing-price' : 'text-lg'}`}>${listing.price}</span>

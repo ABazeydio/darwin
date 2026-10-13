@@ -28,7 +28,7 @@ import { createAccountAndProfile } from "./actions";
 
 /* ── Constants ── */
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 5;
 
 const INTERESTS = [
   { id: "textbooks", label: "Textbooks", icon: BookOpen },
@@ -97,7 +97,6 @@ const STEP_META = [
     description: "Help us personalize your experience",
   },
   { label: "Your Interests", description: "What are you looking for?" },
-  { label: "Founding Access", description: "Did you buy a whitelist spot?" },
   { label: "Create Account", description: "You\u2019re almost there" },
 ];
 
@@ -188,8 +187,6 @@ export default function OnboardingWizard({ next }: { next?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [purchaseEmail, setPurchaseEmail] = useState("");
-  const [magicCode, setMagicCode] = useState("");
 
   const [error, setError] = useState("");
 
@@ -254,8 +251,6 @@ export default function OnboardingWizard({ next }: { next?: string }) {
         interests,
         email: email.trim(),
         password,
-        purchaseEmail: purchaseEmail.trim() || undefined,
-        magicCode: magicCode.trim() || undefined,
         next,
       });
       if (result?.error) {
@@ -271,8 +266,6 @@ export default function OnboardingWizard({ next }: { next?: string }) {
     interests,
     email,
     password,
-    purchaseEmail,
-    magicCode,
     next,
   ]);
 
@@ -541,63 +534,8 @@ export default function OnboardingWizard({ next }: { next?: string }) {
                 </motion.div>
               )}
 
-              {/* ════════ Step 4 — Founding Access (Purchase Email & Magic Code) ════════ */}
+              {/* ════════ Step 4 — Account (Email & Password) ════════ */}
               {step === 4 && (
-                <>
-                  <motion.div
-                    className="onboarding-field"
-                    variants={itemVariants}
-                  >
-                    <label htmlFor="ob-purchase-email" className="onboarding-label">
-                      Purchase Email{" "}
-                      <span className="onboarding-optional">optional</span>
-                    </label>
-                    <input
-                      id="ob-purchase-email"
-                      type="email"
-                      className="vspr-input"
-                      placeholder="Email used for Stripe purchase"
-                      value={purchaseEmail}
-                      onChange={(e) => {
-                        setPurchaseEmail(e.target.value);
-                        if (error) setError("");
-                      }}
-                      autoFocus
-                    />
-                    <p className="auth-form-helper text-secondary">
-                      If you purchased a whitelist spot, enter the personal email you used.
-                    </p>
-                  </motion.div>
-
-                  <motion.div
-                    className="onboarding-field"
-                    variants={itemVariants}
-                  >
-                    <label htmlFor="ob-magic" className="onboarding-label">
-                      Magic Code{" "}
-                      <span className="onboarding-optional">optional</span>
-                    </label>
-                    <input
-                      id="ob-magic"
-                      type="text"
-                      className="vspr-input"
-                      placeholder="e.g. A1B2C3D4"
-                      value={magicCode}
-                      onChange={(e) => {
-                        setMagicCode(e.target.value.toUpperCase());
-                        if (error) setError("");
-                      }}
-                      autoComplete="off"
-                    />
-                    <p className="auth-form-helper text-secondary">
-                      Your unique founding access code.
-                    </p>
-                  </motion.div>
-                </>
-              )}
-
-              {/* ════════ Step 5 — Account (Email & Password) ════════ */}
-              {step === 5 && (
                 <>
                   <motion.div
                     className="onboarding-field"
@@ -734,7 +672,7 @@ export default function OnboardingWizard({ next }: { next?: string }) {
           </div>
 
           <div className="onboarding-actions__right">
-            {(step === 2 || step === 3 || step === 4) && (
+            {(step === 2 || step === 3) && (
               <motion.button
                 type="button"
                 className="onboarding-skip"

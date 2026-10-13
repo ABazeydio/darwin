@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { ensureAccountProfile } from "@/lib/ensure-account-profile";
 
 function safeNext(raw: string | null): string {
     if (!raw || !raw.startsWith("/") || raw.startsWith("//")) {
@@ -18,6 +19,11 @@ export async function GET(request: Request) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { error: profileError } = await ensureAccountProfile(supabase, user);
+                if (profileError) return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("Profile setup could not finish. Please sign in again.")}`);
+            }
             return NextResponse.redirect(`${origin}${next}`);
         }
     }

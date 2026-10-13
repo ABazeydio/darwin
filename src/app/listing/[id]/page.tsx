@@ -10,10 +10,15 @@ import {
   Clock,
   Pencil,
 } from 'lucide-react';
+import FoundingBadge from '@/components/FoundingBadge';
+import BoostListingButton from '@/components/BoostListingButton';
+import { loadBoostStatus } from '@/app/profile/founding-actions';
+import type { BoostStatus } from '@/lib/boost-types';
+import { useMarketplaceRefresh } from '@/lib/use-marketplace-refresh';
 import MessageSellerButton from '@/components/MessageSellerButton';
 import ListingFeedback from '@/components/ListingFeedback';
 import Link from 'next/link';
-import { getConditionClass, Listing } from '@/lib/data';
+import { getConditionClass, Listing, Category, Condition } from '@/lib/data';
 import Image from 'next/image';
 import PageTransition from '@/components/PageTransition';
 import { createClient } from '@/lib/supabase/client';
@@ -33,6 +38,11 @@ export default function ListingDetailPage({
   const [listing, setListing] = useState<Listing | null>(null);
   const [listingUserId, setListingUserId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [benefits, setBenefits] = useState<BoostStatus | null>(null);
+  const [listingStatus, setListingStatus] = useState('active');
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
+  useMarketplaceRefresh(refresh);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [savePending, setSavePending] = useState(false);
@@ -47,25 +57,7 @@ export default function ListingDetailPage({
         const [{ data, error }, { data: authData }] = await Promise.all([
           supabase
             .from('listings')
-            .select(`
-              id,
-              user_id,
-              title,
-              description,
-              price,
-              category,
-              condition,
-              campus,
-              image_url,
-              image_urls,
-              created_at,
-              seller:profiles (
-                id,
-                first_name,
-                full_name,
-                avatar_url
-              )
-            `)
+            .select('*, seller:profiles(id, first_name, full_name, avatar_url, whitelist_tier)')
             .eq('id', id)
             .maybeSingle(),
           supabase.auth.getUser(),
@@ -79,7 +71,11 @@ export default function ListingDetailPage({
         setCurrentUserId(authData.user?.id ?? null);
 
         if (data) {
-          const sellerRaw = (data as any).seller;
+          setListingStatus(data.status);
+          if (authData.user?.id === data.user_id) {
+            setBenefits(await loadBoostStatus());
+          }
+          const sellerRaw = data.seller;
           const sellerMeta = Array.isArray(sellerRaw)
             ? sellerRaw[0] ?? {}
             : sellerRaw ?? {};
@@ -95,16 +91,18 @@ export default function ListingDetailPage({
             id: data.id,
             title: data.title,
             price: data.price,
-            category: (data.category as any) || 'Other',
-            condition: (data.condition as any) || 'New',
+            category: (data.category as Category) || 'Other',
+            condition: (data.condition as Condition) || 'New',
             description: data.description || '',
             image: imageUrls[0] || '/images/textbook.svg',
             seller: {
+              tier: sellerMeta.whitelist_tier,
               id: sellerMeta.id || '',
               name: sellerName,
               avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
               campus: data.campus || 'Main Campus',
             },
+            boostedUntil: data.boosted_until,
             createdAt: data.created_at,
             saved: false,
           });
@@ -121,7 +119,7 @@ export default function ListingDetailPage({
     } else {
       setLoading(false);
     }
-  }, [id, isDbListing]);
+  }, [id, isDbListing, refreshKey]);
 
   // Fetch saved state for DB listings
   useEffect(() => {
@@ -324,6 +322,7 @@ export default function ListingDetailPage({
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[15px] group-hover:text-white transition-colors">
                     {listing.seller.name}
+                    <FoundingBadge tier={listing.seller.tier} />
                   </p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="flex items-center gap-1 text-muted text-sm">
@@ -334,6 +333,8 @@ export default function ListingDetailPage({
                 </div>
               </Link>
             </motion.div>
+
+            {isOwner && <div className="mt-6"><BoostListingButton listingId={listing.id} boostedUntil={listing.boostedUntil} status={listingStatus} benefits={benefits} /></div>}
 
             {/* Action buttons */}
             <motion.div

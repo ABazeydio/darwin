@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { parseListingPrice } from "@/lib/listing-price";
 import { createClient } from "@/lib/supabase/server";
 
 export interface NewListingInput {
@@ -16,13 +17,13 @@ export interface NewListingInput {
 
 function validateListingInput(input: NewListingInput) {
     const title = input.title.trim();
-    const price = Number(input.price);
+    const price = parseListingPrice(input.price);
 
     if (!title) {
         return { error: "Title is required" };
     }
-    if (!Number.isFinite(price) || price <= 0) {
-        return { error: "Enter a price greater than $0" };
+    if (price === null) {
+        return { error: "Enter a price greater than $0 with no more than two decimal places" };
     }
 
     return {
