@@ -1,13 +1,15 @@
 'use client';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowDown, ArrowRight, Search, MapPin } from 'lucide-react';
 import { categories, categoryIcons, Listing } from '@/lib/data';
 import { createClient } from '@/lib/supabase/client';
+import { fetchMarketplace } from '@/lib/marketplace-query';
+import { mapMarketplaceListing, type MarketplaceRow } from '@/lib/marketplace';
+import { earliestBoostExpiry, useMarketplaceRefresh } from '@/lib/use-marketplace-refresh';
 import ListingCard from '@/components/ListingCard';
-import Reviews from '@/components/Reviews';
 import AnimatedSection from '@/components/AnimatedSection';
 
 /* ── Shared easing ── */
@@ -23,77 +25,13 @@ export default function HomePage() {
 
   const [dbListings, setDbListings] = useState<Listing[]>([]);
 
-  useEffect(() => {
-    async function fetchListings() {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('listings')
-          .select(`
-            id,
-            title,
-            description,
-            price,
-            category,
-            condition,
-            campus,
-            image_url,
-            created_at,
-            seller:profiles (
-              id,
-              first_name,
-              full_name,
-              avatar_url
-            )
-          `)
-          .order('created_at', { ascending: false })
-          .limit(4);
-
-        if (error) {
-          console.error('Error fetching listings:', error);
-          return;
-        }
-
-        if (data) {
-          const mapped: Listing[] = data
-            .map((item: any) => {
-              const sellerRaw = item.seller;
-              const sellerMeta = Array.isArray(sellerRaw)
-                ? sellerRaw[0] ?? {}
-                : sellerRaw ?? {};
-              return { item, sellerMeta };
-            })
-            .filter(({ sellerMeta }) => !!sellerMeta.id)
-            .map(({ item, sellerMeta }) => {
-            const sellerName = sellerMeta.full_name || sellerMeta.first_name || 'Student';
-            return {
-              id: item.id,
-              title: item.title,
-              price: item.price,
-              category: (item.category as any) || 'Other',
-              condition: (item.condition as any) || 'New',
-              description: item.description || '',
-              image: item.image_url || '/images/textbook.svg',
-              seller: {
-                id: sellerMeta.id,
-                name: sellerName,
-                avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
-                rating: 5.0,
-                campus: item.campus || 'Main Campus',
-              },
-              createdAt: item.created_at,
-              saved: false,
-            };
-          });
-          setDbListings(mapped);
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-      }
-    }
-
-    fetchListings();
+  const fetchListings = useCallback(async () => {
+    const supabase = createClient();
+    const { data, error } = await fetchMarketplace(supabase, { limit: 4 });
+    if (!error && data) setDbListings((data as MarketplaceRow[]).map((row) => mapMarketplaceListing(row)));
   }, []);
+  useEffect(() => { const timer = window.setTimeout(() => { void fetchListings(); }, 0); return () => window.clearTimeout(timer); }, [fetchListings]);
+  useMarketplaceRefresh(fetchListings, earliestBoostExpiry(dbListings), dbListings[0]?.serverNow);
 
   const featuredListings = dbListings.slice(0, 4);
 
@@ -138,7 +76,7 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.55, ease }}
                 >
-                  A campus marketplace with clearer listings, safer meetups, and a cleaner feed — built for students.
+                  A campus marketplace with clearer listings, safer meetups, and a cleaner feed, built for students.
                 </motion.p>
 
                 <motion.div
@@ -163,9 +101,8 @@ export default function HomePage() {
                   transition={{ duration: 0.7, delay: 0.85, ease }}
                 >
                   {[
-                    { label: 'Sign-up', value: '.edu verified' },
+                    { label: 'Sign-up', value: 'University email' },
                     { label: 'Marketplace', value: 'Campus-only' },
-                    { label: 'Founding spots', value: '225' },
                   ].map((item) => (
                     <div key={item.label} className="home-proof">
                       <div className="home-proof-label">{item.label}</div>
@@ -241,11 +178,6 @@ export default function HomePage() {
             </motion.div>
           </div>
         </div>
-      </section>
-
-      {/* ── REVIEWS ── */}
-      <section className="py-24 md:py-32">
-        <Reviews />
       </section>
 
       {/* ── DIVIDER ── */}
@@ -343,7 +275,7 @@ export default function HomePage() {
             {[
               { num: '01', title: 'List', desc: 'Snap a photo, set a price, and publish your listing in seconds.' },
               { num: '02', title: 'Connect', desc: 'Chat with buyers and sellers directly. All within your campus.' },
-              { num: '03', title: 'Exchange', desc: 'Meet on campus, complete the deal, and leave a review.' },
+              { num: '03', title: 'Exchange', desc: 'Meet on campus and complete the deal.' },
             ].map((step, i) => (
               <motion.div
                 key={step.num}

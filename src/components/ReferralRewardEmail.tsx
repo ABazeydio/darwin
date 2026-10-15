@@ -23,7 +23,7 @@ export default function ReferralRewardEmail() {
     return (
         <Html>
             <Head />
-            <Preview>You did it — priority access to Darwin is yours.</Preview>
+            <Preview>You did it! Priority access to Darwin is yours.</Preview>
             <Body style={main}>
                 <Container style={container}>
 
@@ -40,7 +40,7 @@ export default function ReferralRewardEmail() {
                         <Text style={h1}>Five invites in. You&apos;re at the front of the line.</Text>
 
                         <Text style={p}>
-                            Five students joined the Darwin waitlist through your link — thank
+                            Five students joined the Darwin waitlist through your link. Thank
                             you for helping bring the marketplace to your campus. Here&apos;s
                             what you just earned:
                         </Text>
@@ -51,7 +51,7 @@ export default function ReferralRewardEmail() {
                                 <Column style={perkIcon}>🚀</Column>
                                 <Column>
                                     <Text style={perkText}>
-                                        <strong>Priority early access</strong> — guaranteed entry the
+                                        <strong>Priority early access</strong>: guaranteed entry the
                                         day Darwin goes live at your campus, ahead of the rest of the
                                         waitlist
                                     </Text>
@@ -61,7 +61,7 @@ export default function ReferralRewardEmail() {
                                 <Column style={perkIcon}>🏅</Column>
                                 <Column>
                                     <Text style={perkText}>
-                                        <strong>Founding Supporter badge</strong> — a permanent mark on
+                                        <strong>Founding Supporter badge</strong>: a permanent mark on
                                         your profile for being one of the first to back Darwin
                                     </Text>
                                 </Column>
@@ -69,7 +69,7 @@ export default function ReferralRewardEmail() {
                         </Section>
 
                         <Text style={p}>
-                            Nothing else to do — we&apos;ve locked this to your email. We&apos;ll
+                            Nothing else to do. We&apos;ve locked this to your email. We&apos;ll
                             be in touch the moment we open at your school.
                         </Text>
 
@@ -77,7 +77,7 @@ export default function ReferralRewardEmail() {
 
                         <Text style={boldP}>Want even more out of launch day?</Text>
                         <Text style={p}>
-                            Founding members get monthly boosted listings for life — one
+                            Founding members get monthly boosted listings for life with one
                             payment, no renewals. Only 225 spots across two tiers.
                         </Text>
 
@@ -85,7 +85,7 @@ export default function ReferralRewardEmail() {
                             View founding tiers
                         </Button>
 
-                        <Text style={{ ...p, marginBottom: 0 }}>— The Darwin team</Text>
+                        <Text style={{ ...p, marginBottom: 0 }}>The Darwin team</Text>
                     </Section>
 
                     {/* Footer */}

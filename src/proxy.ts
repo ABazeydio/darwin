@@ -2,27 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function proxy(request: NextRequest) {
-  // Only redirect to waitlist if the environment variable is actively set
-  if (process.env.ENABLE_WAITLIST === 'true') {
-    const ALLOWED_PATHS = [
-      '/waitlist',
-      '/whitelist',
-      '/login',
-      '/onboarding',
-      '/privacy',
-      '/_next',
-      '/favicon.ico',
-      '/api',
-    ];
-
-    const { pathname } = request.nextUrl;
-    const isAllowed = ALLOWED_PATHS.some((p) => pathname.startsWith(p));
-
-    if (!isAllowed) {
-      return NextResponse.redirect(new URL('/waitlist', request.url));
-    }
-  }
-
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

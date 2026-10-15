@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { serviceClient } from "@/lib/supabase/service";
 import { constructWebhookEvent, refundSession } from "@/lib/stripe";
 import { isTierKey } from "@/lib/whitelist";
+import { fulfillMembership } from "@/lib/membership-fulfillment";
 
 // Stripe SDK uses node:crypto — Edge runtime is not an option.
 export const runtime = "nodejs";
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
         return new Response("Invalid signature", { status: 401 });
     }
 
-    if (event.type !== "checkout.session.completed") {
+    if (event.type !== "checkout.session.completed" && event.type !== "checkout.session.async_payment_succeeded") {
         return new Response("Ignored", { status: 200 });
     }
 
@@ -55,6 +56,17 @@ export async function POST(request: Request) {
 
     if (session.payment_status !== "paid") {
         return new Response("Not yet paid", { status: 200 });
+    }
+
+    // New signed-in purchases bypass the legacy guest/code system entirely.
+    if (session.metadata?.fulfillment_version === "account_v1") {
+        try {
+            const result = await fulfillMembership(session.id);
+            if (result.status === "invalid") return new Response("Invalid paid membership", { status: 400 });
+            return new Response(result.status, { status: 200 });
+        } catch {
+            return new Response("Membership fulfillment failed; retry required", { status: 500 });
+        }
     }
 
     const sessionId = session.id;

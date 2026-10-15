@@ -2,18 +2,17 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type Stripe from "stripe";
 import {
-    ArrowRight,
     ArrowUpRight,
     Check,
     CheckCircle2,
 } from "lucide-react";
 import { retrieveSession } from "@/lib/stripe";
-import { getPurchaseBySessionId } from "@/lib/founding-purchase";
+import { createClient } from "@/lib/supabase/server";
+import { fulfillMembership } from "@/lib/membership-fulfillment";
 import { TIERS, isTierKey } from "@/lib/whitelist";
 import AnimatedCheck from "@/components/effects/AnimatedCheck";
 import Confetti from "@/components/effects/Confetti";
 import ShineBorder from "@/components/effects/ShineBorder";
-import FoundingSecretCode from "@/components/FoundingSecretCode";
 import FoundingSuccessPending from "@/components/FoundingSuccessPending";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +52,10 @@ export default async function WhitelistSuccessPage({
     searchParams: SearchParams;
 }) {
     const { session_id } = await searchParams;
-    if (!session_id) redirect("/whitelist");
+    if (!session_id || !/^cs_[a-zA-Z0-9_]+$/.test(session_id) || session_id.length > 255) redirect("/whitelist");
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login?next=' + encodeURIComponent('/whitelist/success?session_id=' + session_id));
 
     let session: Stripe.Checkout.Session;
     try {
@@ -62,9 +64,10 @@ export default async function WhitelistSuccessPage({
         redirect("/whitelist?error=checkout_failed");
     }
 
+    if (session.metadata?.user_id !== user.id || session.client_reference_id !== user.id || session.metadata?.fulfillment_version !== 'account_v1') redirect('/whitelist?error=unverified_purchase');
     const tierKey = session.metadata?.tier;
 
-    if (session.payment_status !== "paid" || !isTierKey(tierKey)) {
+    if (!isTierKey(tierKey)) {
         redirect("/whitelist");
     }
 
@@ -73,7 +76,14 @@ export default async function WhitelistSuccessPage({
     const email =
         session.customer_details?.email ?? session.customer_email ?? null;
     const receiptUrl = receiptUrlFrom(session);
-    const purchase = await getPurchaseBySessionId(session_id);
+    let ready = false;
+    let invalid = false;
+    try {
+        const result = await fulfillMembership(session_id, user.id, false);
+        invalid = result.status === 'invalid';
+        ready = result.status === 'fulfilled';
+    } catch { /* The authenticated status component retries transient fulfillment failures. */ }
+    if (invalid) redirect('/whitelist?error=unverified_purchase');
 
     return (
         <div className="waitlist-page">
@@ -85,7 +95,7 @@ export default async function WhitelistSuccessPage({
 
                 <div className="container-vspr relative z-10">
                     <div className="whitelist-success-panel waitlist-founding-panel">
-                        <Confetti trigger={session_id} />
+                        {ready && <Confetti trigger={session_id} />}
                         <ShineBorder duration={10} />
                         <div
                             className="waitlist-founding-grid"
@@ -116,29 +126,25 @@ export default async function WhitelistSuccessPage({
                                     size={14}
                                     className="whitelist-success-check"
                                 />
-                                Payment confirmed
+                                {ready ? 'Membership active' : 'Checkout status'}
                             </span>
 
                             <h1 className="waitlist-founding-title">
-                                You&apos;re in.
+                                {ready ? "You're in." : 'Finishing checkout.'}
                                 <br />
                                 <span className="text-muted">
-                                    Welcome, founder.
+                                    {ready ? 'Welcome, founder.' : 'Your account benefits.'}
                                 </span>
                             </h1>
 
-                            {purchase ? (
-                                <FoundingSecretCode code={purchase.secret_code} />
-                            ) : (
-                                <FoundingSuccessPending sessionId={session_id} />
-                            )}
+                            <FoundingSuccessPending sessionId={session_id} initiallyReady={ready} tier={tierKey} />
 
                             <p className="waitlist-founding-copy mt-6">
-                                We charged {amount} and locked in your{" "}
-                                {tier.label} spot
+                                Payment total: {amount} for your{" "}
+                                {tier.label} membership
                                 {email ? (
                                     <>
-                                        . A receipt is on its way to{" "}
+                                        . Checkout email:{" "}
                                         <span className="whitelist-success-email">
                                             {email}
                                         </span>
@@ -191,8 +197,8 @@ export default async function WhitelistSuccessPage({
                                         className="whitelist-success-check"
                                     />
                                     <span>
-                                        Boosted listings activate the moment
-                                        Darwin goes live at your campus.
+                                        Your badge and monthly boosts are applied
+                                        automatically to your purchasing account.
                                     </span>
                                 </li>
                                 <li>
@@ -201,13 +207,16 @@ export default async function WhitelistSuccessPage({
                                         className="whitelist-success-check"
                                     />
                                     <span>
-                                        No renewals, no subscription — this is
+                                        No renewals or subscription. This is
                                         yours forever.
                                     </span>
                                 </li>
                             </ul>
 
                             <div className="whitelist-success-ctas">
+                                <Link href="/profile" className="pill-btn">
+                                    View your profile
+                                </Link>
                                 {receiptUrl && (
                                     <a
                                         href={receiptUrl}

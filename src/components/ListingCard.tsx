@@ -1,11 +1,13 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, MapPin, Star } from 'lucide-react';
+import { Heart, MapPin } from 'lucide-react';
 import { Listing, getConditionClass } from '@/lib/data';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { isBoostActive } from '@/lib/boost-types';
+import { useBoostClock } from '@/lib/use-marketplace-refresh';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -26,9 +28,9 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
   const isBrowse = variant === 'browse';
   const [saved, setSaved] = useState(listing.saved);
   const [pending, setPending] = useState(false);
+  const now = useBoostClock(listing.serverNow);
 
   const isDbListing = UUID_RE.test(listing.id);
-  const hasRating = typeof listing.seller.rating === 'number' && listing.seller.rating > 0;
 
   const handleSaveToggle = useCallback(
     async (e: React.MouseEvent) => {
@@ -92,6 +94,7 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
             {/* Bottom gradient overlay with category badge */}
             <div className="listing-image-meta">
               <span className="category-badge">{listing.category}</span>
+              {isBoostActive(listing.boostedUntil, now) && <span className="boosted-label">Boosted</span>}
             </div>
             {/* Save button */}
             <motion.button
@@ -148,12 +151,6 @@ export default function ListingCard({ listing, index, variant = 'default', onSav
                   </div>
                   <div className="card-seller-info">
                     <span className="card-seller-name">{listing.seller.name.split(' ')[0]}</span>
-                    {hasRating && (
-                      <div className="card-seller-rating">
-                        <Star size={10} fill="#facc15" color="#facc15" />
-                        <span>{listing.seller.rating}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ) : (

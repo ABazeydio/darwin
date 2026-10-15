@@ -1,5 +1,5 @@
 /**
- * Pre-launch premium whitelist tiers.
+ * Premium whitelist tiers.
  *
  * Single source of truth for tier metadata, consumed by:
  *   - /whitelist pricing page

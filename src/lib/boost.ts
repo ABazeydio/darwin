@@ -1,44 +1,25 @@
+import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { TIERS, type TierKey, isTierKey } from "@/lib/whitelist";
+import type { BoostStatus } from "@/lib/boost-types";
+import { isTierKey, TIERS } from "@/lib/whitelist";
 
-export type BoostStatus = {
-    canBoost: boolean;
-    remaining: number;
-    tier: TierKey | null;
-};
-
-/**
- * Read-only check of a user's boost quota.
- *
- * Returns whether the user currently has a boost available this period.
- * Does NOT mutate — the monthly reset and actual decrement live in a
- * future `consumeBoost` RPC invoked by the boost action. Keeping this
- * read-only means it's cheap to call on every render.
- *
- * TODO: wire `consumeBoost(userId)` RPC when the boosted-listing UI lands.
- */
-export async function canBoost(userId: string): Promise<BoostStatus> {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-        .from("profiles")
-        .select("whitelist_tier, boosts_used_this_month, boost_reset_at")
-        .eq("id", userId)
-        .single();
-
-    if (error || !data || !isTierKey(data.whitelist_tier)) {
-        return { canBoost: false, remaining: 0, tier: null };
-    }
-
-    const tier = data.whitelist_tier;
-    const quota = TIERS[tier].boostsPerMonth;
-
-    // If the reset date has passed, the next use will be treated as a
-    // fresh period. Surface the full quota as remaining.
-    const resetAt = data.boost_reset_at ? new Date(data.boost_reset_at) : null;
-    const periodExpired = !resetAt || resetAt.getTime() <= Date.now();
-    const used = periodExpired ? 0 : (data.boosts_used_this_month ?? 0);
-
-    const remaining = Math.max(0, quota - used);
-    return { canBoost: remaining > 0, remaining, tier };
+/** Database time and the authenticated account determine quota/reset status. */
+export async function getBoostStatus(): Promise<BoostStatus | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("founding_boost_status");
+  if (error && ["PGRST202", "42883"].includes(error.code)) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data: profile, error: profileError } = await supabase.from("profiles")
+      .select("whitelist_tier, boosts_used_this_month, boost_reset_at").eq("id", user.id).maybeSingle();
+    if (profileError || !profile) return null;
+    const now = new Date();
+    const resetAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    const tier = isTierKey(profile.whitelist_tier) ? profile.whitelist_tier : null;
+    const quota = tier ? TIERS[tier].boostsPerMonth : 0;
+    const used = profile.boost_reset_at && new Date(profile.boost_reset_at).getTime() > now.getTime() ? profile.boosts_used_this_month ?? 0 : 0;
+    return { tier, quota, remaining: Math.max(0, quota - used), resetAt: resetAt.toISOString(), serverNow: now.toISOString() };
+  }
+  if (error || !data || data.error) return null;
+  return data as BoostStatus;
 }

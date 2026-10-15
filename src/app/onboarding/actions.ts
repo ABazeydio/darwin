@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isSignupPasswordValid, PASSWORD_REQUIREMENTS } from "@/lib/password-validation";
 
 const EMAIL_ALREADY_REGISTERED = "Email already registered";
 
@@ -26,7 +27,8 @@ const SCHOOL_NAMES: Record<string, string> = {
 function emailMatchesSchool(email: string, schoolId: string): boolean {
   const domain = SCHOOL_EMAIL_DOMAINS[schoolId];
   if (!domain) return false;
-  return email.trim().toLowerCase().endsWith("@" + domain);
+  const normalizedEmail = email.trim().toLowerCase();
+  return normalizedEmail.endsWith("@" + domain);
 }
 
 // Only allow single-slash internal paths — no protocol-relative or absolute
@@ -69,12 +71,13 @@ interface OnboardingData {
   interests: string[];
   email: string;
   password: string;
-  purchaseEmail?: string;
-  magicCode?: string;
   next?: string;
 }
 
 export async function createAccountAndProfile(data: OnboardingData) {
+  if (!isSignupPasswordValid(data.password)) {
+    return { error: PASSWORD_REQUIREMENTS };
+  }
   const supabase = await createClient();
 
   // ── Institution / email domain guard ─────────────────────────────────────
@@ -90,26 +93,16 @@ export async function createAccountAndProfile(data: OnboardingData) {
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  if (data.magicCode && data.purchaseEmail) {
-    const { data: isValid, error: rpcError } = await supabase.rpc("redeem_magic_code", {
-      p_email: data.purchaseEmail,
-      p_code: data.magicCode,
-    });
-
-    if (rpcError || !isValid) {
-      return { error: "Invalid or already used magic code" };
-    }
-  }
-
   const fullName = [data.firstName, data.lastName]
     .filter(Boolean)
     .join(" ");
 
   // 1. Create the Supabase auth account
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: data.email,
+    email: data.email.trim().toLowerCase(),
     password: data.password,
     options: {
+      emailRedirectTo: `${(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "")}/auth/callback?next=${encodeURIComponent(safeNext(data.next) ?? "/browse")}`,
       data: {
         first_name: data.firstName,
         last_name: data.lastName || null,
@@ -143,8 +136,6 @@ export async function createAccountAndProfile(data: OnboardingData) {
   // 2. If email verification is required, there's no session yet
   if (!authData.session) {
     return {
-      error:
-        "Check your email to verify your account, then sign in to complete setup.",
       needsVerification: true,
     };
   }

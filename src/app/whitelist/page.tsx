@@ -1,7 +1,6 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createCheckoutSession } from "@/lib/stripe";
+import { startCheckout } from "./actions";
 import { TIERS, isTierKey, type TierKey } from "@/lib/whitelist";
 import WhitelistFeedback from "@/components/WhitelistFeedback";
 import WhitelistClient from "./WhitelistClient";
@@ -45,18 +44,9 @@ export default async function WhitelistPage({
 
     const { tier } = await searchParams;
     if (isTierKey(tier)) {
-        const spot = spots[tier];
-        if (spot && spot.sold < spot.total) {
-            let checkoutUrl: string | null = null;
-            try {
-                checkoutUrl = await createCheckoutSession(tier);
-            } catch (err) {
-                console.error("[WhitelistPage auto-resume]", err);
-            }
-            if (checkoutUrl) {
-                redirect(checkoutUrl);
-            }
-        }
+        const form = new FormData();
+        form.set("tier", tier);
+        await startCheckout(form);
     }
 
     return (

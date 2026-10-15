@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ensureAccountProfile } from "@/lib/ensure-account-profile";
 
 // Only allow single-slash internal paths — no protocol-relative or absolute
 // URLs — to prevent open-redirect via `?next=`.
@@ -33,33 +34,9 @@ export async function signIn(formData: FormData): Promise<void> {
     redirect(`/login?error=${encodeURIComponent(error.message)}${suffix}`);
   }
 
-  // Ensure user has a profile record (in case email verification skipped it)
   if (signInData?.user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", signInData.user.id)
-      .maybeSingle();
-
-    if (!profile) {
-      const metadata = signInData.user.user_metadata || {};
-      const first_name = metadata.first_name || email.split("@")[0] || "User";
-      const fullName = [metadata.first_name, metadata.last_name]
-        .filter(Boolean)
-        .join(" ") || first_name;
-
-      await supabase.from("profiles").insert({
-        id: signInData.user.id,
-        username: email.split("@")[0] || `user_${signInData.user.id.substring(0, 8)}`,
-        first_name,
-        last_name: metadata.last_name || null,
-        full_name: fullName,
-        school: metadata.school || null,
-        level_of_study: metadata.level_of_study || null,
-        program: metadata.program || null,
-        interests: metadata.interests || null,
-      });
-    }
+    const { error: profileError } = await ensureAccountProfile(supabase, signInData.user);
+    if (profileError) redirect('/login?error=Profile%20setup%20could%20not%20finish.%20Please%20try%20again.');
   }
 
   redirect(next ?? "/browse");

@@ -47,8 +47,8 @@ export default function FoundingSecretCode({ code }: Props) {
                 </button>
             </div>
             <p className="founding-secret-code-hint text-secondary text-sm mt-3">
-                Save this code. You&apos;ll enter it when you create your Darwin
-                account to unlock your founding benefits.
+                Save this code. Enter it during signup or link your purchase on
+                your profile to unlock your badge and monthly boosts.
             </p>
         </div>
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { Suspense, useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   User,
@@ -12,7 +12,6 @@ import {
   Check,
   AlertCircle,
   Lock,
-  Bell,
   ShoppingBag,
   LogOut,
   GraduationCap,
@@ -25,6 +24,11 @@ import AvatarCropModal from '@/components/AvatarCropModal';
 import ImageLightbox from '@/components/ImageLightbox';
 import { updateProfile, updateAvatarUrl, sendPasswordResetEmail } from './actions';
 import { createClient } from '@/lib/supabase/client';
+import FoundingBadge from '@/components/FoundingBadge';
+import FoundingBenefits from '@/components/FoundingBenefits';
+import BoostListingButton from '@/components/BoostListingButton';
+import type { BoostStatus } from '@/lib/boost-types';
+import type { TierKey } from '@/lib/whitelist';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 function stagger(i: number, base = 0.12) {
@@ -38,6 +42,7 @@ type UserData = {
 };
 
 type ProfileData = {
+  tier: TierKey | null;
   firstName: string;
   lastName: string;
   fullName: string;
@@ -47,6 +52,8 @@ type ProfileData = {
 };
 
 type ListingItem = {
+  boostedUntil: string | null;
+  status: string;
   id: string;
   title: string;
   price: number;
@@ -58,12 +65,13 @@ type ListingItem = {
 };
 
 interface Props {
+  benefits: BoostStatus | null;
   user: UserData;
   profile: ProfileData;
   listings: ListingItem[];
 }
 
-export default function ProfileClient({ user, profile, listings }: Props) {
+export default function ProfileClient({ user, profile, listings, benefits }: Props) {
   const [firstName, setFirstName] = useState(profile.firstName);
   const [lastName, setLastName] = useState(profile.lastName);
   const [bio, setBio] = useState(profile.bio);
@@ -338,6 +346,7 @@ export default function ProfileClient({ user, profile, listings }: Props) {
               <h2 className="profile-identity-name">
                 {profile.fullName || profile.firstName || 'Student'}
               </h2>
+              <FoundingBadge tier={profile.tier} />
               {profile.school && (
                 <p className="profile-identity-meta">
                   <GraduationCap size={14} />
@@ -364,6 +373,7 @@ export default function ProfileClient({ user, profile, listings }: Props) {
 
           {/* ═══ Right: Cards ═══ */}
           <div className="profile-main">
+            <Suspense><FoundingBenefits benefits={benefits} /></Suspense>
             {/* ── Account Information Card ── */}
             <motion.section
               className="profile-card"
@@ -487,53 +497,12 @@ export default function ProfileClient({ user, profile, listings }: Props) {
               </div>
             </motion.section>
 
-            {/* ── Notifications Card (Placeholder) ── */}
-            <motion.section
-              className="profile-card"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={stagger(3)}
-            >
-              <div className="profile-card-header">
-                <Bell size={18} />
-                <h3>Notifications</h3>
-              </div>
-
-              <div className="profile-placeholder-row">
-                <div className="profile-placeholder-info">
-                  <p className="profile-placeholder-title">Email Notifications</p>
-                  <p className="text-muted text-sm">
-                    Receive updates about messages and listing activity.
-                  </p>
-                </div>
-                <div className="profile-toggle profile-toggle--disabled">
-                  <div className="profile-toggle-track">
-                    <div className="profile-toggle-thumb" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="profile-placeholder-row">
-                <div className="profile-placeholder-info">
-                  <p className="profile-placeholder-title">Price Drop Alerts</p>
-                  <p className="text-muted text-sm">
-                    Get notified when items in your saved list drop in price.
-                  </p>
-                </div>
-                <div className="profile-toggle profile-toggle--disabled">
-                  <div className="profile-toggle-track">
-                    <div className="profile-toggle-thumb" />
-                  </div>
-                </div>
-              </div>
-            </motion.section>
-
             {/* ── My Postings Card ── */}
             <motion.section
               className="profile-card"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={stagger(4)}
+              transition={stagger(3)}
             >
               <div className="profile-card-header">
                 <ShoppingBag size={18} />
@@ -544,33 +513,35 @@ export default function ProfileClient({ user, profile, listings }: Props) {
               {listings.length > 0 ? (
                 <div className="profile-listings-grid">
                   {listings.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/listing/${item.id}`}
-                      className="profile-listing-item"
-                    >
-                      <div className="profile-listing-thumb">
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.title}
-                          fill
-                          sizes="64px"
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="profile-listing-info">
-                        <p className="profile-listing-title">{item.title}</p>
-                        <div className="profile-listing-meta">
-                          <span className="price-tag text-sm">${item.price}</span>
-                          {item.campus && (
-                            <span className="profile-listing-campus">
-                              <MapPin size={11} />
-                              {item.campus}
-                            </span>
-                          )}
+                    <div key={item.id} className="flex flex-col gap-3">
+                      <Link
+                        href={`/listing/${item.id}`}
+                        className="profile-listing-item"
+                      >
+                        <div className="profile-listing-thumb">
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.title}
+                            fill
+                            sizes="64px"
+                            className="object-cover"
+                          />
                         </div>
-                      </div>
-                    </Link>
+                        <div className="profile-listing-info">
+                          <p className="profile-listing-title">{item.title}</p>
+                          <div className="profile-listing-meta">
+                            <span className="price-tag text-sm">${item.price}</span>
+                            {item.campus && (
+                              <span className="profile-listing-campus">
+                                <MapPin size={11} />
+                                {item.campus}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                      <BoostListingButton listingId={item.id} boostedUntil={item.boostedUntil} status={item.status} benefits={benefits} />
+                    </div>
                   ))}
                 </div>
               ) : (

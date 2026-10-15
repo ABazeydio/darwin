@@ -36,8 +36,7 @@ export default function AboutPage() {
               <p className="page-hero-copy max-w-3xl">
                 Darwin was created to solve a simple problem: campus marketplaces are fragmented
                 across WhatsApp groups, Facebook posts, and bulletin boards. We built one unified
-                platform where students can find, buy, and sell everything they need — fast,
-                safe, and local.
+                platform where students can find, buy, and sell what they need on campus.
               </p>
             </div>
           </section>
@@ -101,41 +100,6 @@ export default function AboutPage() {
           ))}
         </div>
 
-        <div className="divider my-16" />
-
-        {/* Numbers */}
-        <AnimatedSection>
-          <section>
-            <span className="section-label">03 // BY THE NUMBERS</span>
-          </section>
-        </AnimatedSection>
-
-        <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-          {[
-            { num: '2.4K+', label: 'Active Students' },
-            { num: '8.1K', label: 'Items Listed' },
-            { num: '94%', label: 'Deal Success Rate' },
-            { num: '12', label: 'Campuses' },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className="surface-inset p-5 md:p-6"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{
-                delay: i * 0.1,
-                duration: 0.6,
-                ease: [0.25, 0.46, 0.45, 0.94],
-              }}
-            >
-              <p className="text-4xl md:text-5xl font-bold">{stat.num}</p>
-              <p className="text-muted mt-2 text-xs uppercase tracking-widest">
-                {stat.label}
-              </p>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </PageTransition>
   );

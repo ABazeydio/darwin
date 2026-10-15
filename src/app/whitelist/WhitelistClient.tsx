@@ -28,14 +28,9 @@ const MEMBER_BENEFITS: Benefit[] = [
     { text: "1 boosted listing every month, forever" },
     { text: "Early access to marketplace features" },
     {
-        text: "Founding-member status preserved in your profile",
-        tooltipPhrase: "Founding-member status",
-        preview: (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent)]/35 bg-[var(--accent)]/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--accent)]">
-                <Sparkles size={11} />
-                Founding Member
-            </span>
-        ),
+        text: "Founding Member badge on your profile",
+        tooltipPhrase: "Founding Member badge",
+        preview: <FoundingBadge tier="founding_member" />,
     },
 ];
 
@@ -46,7 +41,7 @@ const PRO_BENEFITS: Benefit[] = [
         tooltipPhrase: "Founding Pro badge",
         preview: <FoundingBadge tier="founding_pro" />,
     },
-    { text: "Priority support during the pre-launch period" },
+    { text: "Priority support during launch" },
     { text: "Early access to every upcoming feature" },
 ];
 
@@ -73,12 +68,12 @@ const STEPS = [
     {
         num: "01",
         title: "Claim your spot",
-        desc: "Secure a Founding tier with a one-time payment before spots run out.",
+        desc: "Choose a Founding tier with a one-time payment.",
     },
     {
         num: "02",
         title: "Get boosts monthly",
-        desc: "Your monthly boost allowance resets automatically, forever. No subscription to manage.",
+        desc: "Your allowance resets every month in UTC. Each boost promotes a listing for 7 days, with no subscription to manage.",
     },
     {
         num: "03",
@@ -100,9 +95,6 @@ export default function WhitelistClient({ spots }: Props) {
         offset: ["start start", "end start"],
     });
     const orbY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
-
-    const totalSpots =
-        TIERS.founding_member.maxSpots + TIERS.founding_pro.maxSpots;
 
     return (
         <div className="waitlist-page">
@@ -146,9 +138,8 @@ export default function WhitelistClient({ spots }: Props) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, delay: 0.42, ease }}
                         >
-                            A limited pre-launch tier for Darwin&apos;s earliest
-                            members. One payment, monthly boosts, yours for
-                            life — no subscription, no expiry.
+                            Founding tiers for Darwin&apos;s earliest members. One payment, monthly boosts, yours for
+                            life, with no subscription or expiry.
                         </motion.p>
 
                         <motion.div
@@ -169,11 +160,10 @@ export default function WhitelistClient({ spots }: Props) {
                                     </a>
                                 </div>
                                 <p className="waitlist-helper">
-                                    {totalSpots} total spots ·{" "}
                                     <span className="waitlist-helper-accent">
                                         one-time payment
                                     </span>{" "}
-                                    · no account required
+                                    · applied to your account after checkout
                                 </p>
                             </div>
                         </motion.div>
@@ -195,7 +185,7 @@ export default function WhitelistClient({ spots }: Props) {
                         <h2 className="section-title-md mt-4">
                             Two tiers.
                             <br />
-                            <span className="text-muted">Limited spots.</span>
+                            <span className="text-muted">Lasting benefits.</span>
                         </h2>
                     </motion.div>
 
@@ -300,8 +290,7 @@ export default function WhitelistClient({ spots }: Props) {
                         <p className="section-copy mt-5 max-w-2xl">
                             Founding tiers are Darwin&apos;s way of thanking
                             the people who showed up first. They&apos;re
-                            one-time, limited, and permanent — no renewals, no
-                            catches.
+                            available for a one-time payment, with no renewals.
                         </p>
 
                         <div className="whitelist-bottom-cta-row">
@@ -352,12 +341,7 @@ function TierCard({
     delay?: number;
 }) {
     const tier = TIERS[tierKey];
-    const remaining = Math.max(0, spot.total - spot.sold);
-    const soldOut = remaining === 0;
-    const progressPct =
-        spot.total > 0
-            ? Math.max(0, Math.min(100, (spot.sold / spot.total) * 100))
-            : 0;
+    const soldOut = spot.sold >= spot.total;
 
     return (
         <motion.div
@@ -405,29 +389,6 @@ function TierCard({
                     </li>
                 ))}
             </ul>
-
-            <div className="relative z-10 mb-6">
-                <div className="flex items-center justify-between text-xs text-muted mb-2.5">
-                    <span>
-                        <NumberTicker value={remaining} /> of {spot.total} spots left
-                    </span>
-                    <span>
-                        <NumberTicker value={Math.round(progressPct)} suffix="%" /> claimed
-                    </span>
-                </div>
-                <div
-                    className="whitelist-progress"
-                    role="progressbar"
-                    aria-valuenow={spot.sold}
-                    aria-valuemin={0}
-                    aria-valuemax={spot.total}
-                >
-                    <div
-                        className="whitelist-progress-fill"
-                        style={{ width: `${progressPct}%` }}
-                    />
-                </div>
-            </div>
 
             {soldOut ? (
                 <button

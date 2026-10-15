@@ -13,11 +13,11 @@ function stripe(): Stripe {
 }
 
 /**
- * Create a Stripe Checkout Session for a given tier (guest checkout).
+ * Create an account-bound Stripe Checkout Session for a given tier.
  * Encodes tier in session metadata — Stripe echoes this back in the
  * webhook on `session.metadata`, which is what we trust.
  */
-export async function createCheckoutSession(tier: TierKey): Promise<string> {
+export async function createCheckoutSession(tier: TierKey, account: { id: string; email?: string }): Promise<string> {
     const priceId = process.env[TIERS[tier].priceEnv];
     if (!priceId) throw new Error(`${TIERS[tier].priceEnv} is not set`);
 
@@ -30,9 +30,11 @@ export async function createCheckoutSession(tier: TierKey): Promise<string> {
         success_url: `${baseUrl}/whitelist/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/whitelist?error=cancelled`,
         customer_creation: "always",
-        metadata: { tier },
+        client_reference_id: account.id,
+        customer_email: account.email,
+        metadata: { tier, user_id: account.id, fulfillment_version: "account_v1" },
         payment_intent_data: {
-            metadata: { tier },
+            metadata: { tier, user_id: account.id },
         },
     });
 
@@ -51,7 +53,7 @@ export async function retrieveSession(
     sessionId: string,
 ): Promise<Stripe.Checkout.Session> {
     return stripe().checkout.sessions.retrieve(sessionId, {
-        expand: ["payment_intent.latest_charge"],
+        expand: ["payment_intent.latest_charge", "line_items.data.price"],
     });
 }
 
@@ -74,6 +76,6 @@ export function constructWebhookEvent(
  * Session. Called when a paid webhook arrives but the tier sold out
  * between checkout and payment settling.
  */
-export async function refundSession(paymentIntentId: string): Promise<void> {
-    await stripe().refunds.create({ payment_intent: paymentIntentId });
+export async function refundSession(paymentIntentId: string, idempotencyKey?: string): Promise<void> {
+    await stripe().refunds.create({ payment_intent: paymentIntentId }, idempotencyKey ? { idempotencyKey } : undefined);
 }

@@ -22,7 +22,7 @@ const InstagramIcon = () => (
 
 const socials = [
   { href: 'https://x.com/VesperWorks_', icon: <XIcon />, label: 'X' },
-  { href: 'https://instagram.com/vesperworks_', icon: <InstagramIcon />, label: 'Instagram' },
+  { href: 'https://www.instagram.com/darwin.marketplace?exln=MXRlNzd3ZWZub2w5MA==', icon: <InstagramIcon />, label: 'Instagram' },
 ];
 
 export default function Footer() {

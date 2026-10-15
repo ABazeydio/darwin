@@ -5,10 +5,8 @@ import {
   User,
   Calendar,
   GraduationCap,
-  MapPin,
   ShoppingBag,
   Edit2,
-  Star,
   BookOpen,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -16,6 +14,8 @@ import Link from 'next/link';
 import PageTransition from '@/components/PageTransition';
 import ListingCard from '@/components/ListingCard';
 import { Listing } from '@/lib/data';
+import FoundingBadge from '@/components/FoundingBadge';
+import type { TierKey } from '@/lib/whitelist';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 function stagger(i: number, base = 0.12) {
@@ -23,6 +23,7 @@ function stagger(i: number, base = 0.12) {
 }
 
 type ProfileData = {
+  tier: TierKey | null;
   id: string;
   firstName: string;
   lastName: string;
@@ -100,6 +101,7 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile }:
               <h2 className="profile-identity-name">
                 {profile.fullName || profile.firstName || 'Student'}
               </h2>
+              <FoundingBadge tier={profile.tier} />
               
               <span className={`profile-count-badge mt-1`} style={{ fontSize: '0.75rem', padding: '2px 8px' }}>
                 {roleName}

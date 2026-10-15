@@ -18,7 +18,7 @@ export default function WaitlistEmail({ referralUrl }: { referralUrl?: string } 
     return (
         <Html>
             <Head />
-            <Preview>You're on the Darwin waitlist — your campus marketplace is coming.</Preview>
+            <Preview>You&apos;re on the Darwin waitlist. Your campus marketplace is coming.</Preview>
             <Body style={main}>
                 <Container style={container}>
 
@@ -53,7 +53,7 @@ export default function WaitlistEmail({ referralUrl }: { referralUrl?: string } 
                                 <Column style={perkIcon}>🧑‍💻</Column>
                                 <Column>
                                     <Text style={perkText}>
-                                        <strong>Verified students only</strong> — every buyer and seller is confirmed with a university email
+                                        <strong>Verified students only</strong>: every buyer and seller is confirmed with a university email
                                     </Text>
                                 </Column>
                             </Row>
@@ -61,7 +61,7 @@ export default function WaitlistEmail({ referralUrl }: { referralUrl?: string } 
                                 <Column style={perkIcon}>🏫</Column>
                                 <Column>
                                     <Text style={perkText}>
-                                        <strong>Campus-only listings</strong> — browse items from students at your school, no shipping needed
+                                        <strong>Campus-only listings</strong>: browse items from students at your school, no shipping needed
                                     </Text>
                                 </Column>
                             </Row>
@@ -69,7 +69,7 @@ export default function WaitlistEmail({ referralUrl }: { referralUrl?: string } 
                                 <Column style={perkIcon}>⚡</Column>
                                 <Column>
                                     <Text style={perkText}>
-                                        <strong>List in seconds</strong> — snap a photo and you're live
+                                        <strong>List in seconds</strong>: snap a photo and you're live
                                     </Text>
                                 </Column>
                             </Row>
@@ -79,7 +79,7 @@ export default function WaitlistEmail({ referralUrl }: { referralUrl?: string } 
 
                         <Text style={boldP}>Want to lock in early access forever?</Text>
                         <Text style={p}>
-                            Founding members get monthly boosted listings for life — one
+                            Founding members get monthly boosted listings for life with one
                             payment, no renewals. Only 225 spots across two tiers.
                         </Text>
 
@@ -94,7 +94,7 @@ export default function WaitlistEmail({ referralUrl }: { referralUrl?: string } 
                                 <Text style={boldP}>Invite 5 friends, unlock priority access.</Text>
                                 <Text style={p}>
                                     Get 5 students to join with your link and you&apos;ll jump to the
-                                    front of the line — guaranteed day-one access the moment Darwin
+                                    front of the line with guaranteed day-one access the moment Darwin
                                     launches at your campus, plus a Founding Supporter badge on your
                                     profile. No payment, ever.
                                 </Text>
@@ -105,13 +105,13 @@ export default function WaitlistEmail({ referralUrl }: { referralUrl?: string } 
                             </Section>
                         ) : (
                             <Text style={p}>
-                                Know someone who&apos;d love Darwin? Forward this email — the more
+                                Know someone who&apos;d love Darwin? Forward this email. The more
                                 students on your campus who join early, the faster we launch
                                 there.
                             </Text>
                         )}
 
-                        <Text style={{ ...p, marginBottom: 0 }}>— The Darwin team</Text>
+                        <Text style={{ ...p, marginBottom: 0 }}>The Darwin team</Text>
                     </Section>
 
                     {/* Footer */}

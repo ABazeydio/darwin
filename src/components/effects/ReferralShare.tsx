@@ -44,7 +44,7 @@ export default function ReferralShare({
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      /* clipboard blocked — link is still visible to copy manually */
+      /* clipboard blocked: link is still visible to copy manually */
     }
   };
 
@@ -75,7 +75,7 @@ export default function ReferralShare({
       {rewardUnlocked ? (
         <p className="referral-share-goal referral-share-goal--done">
           <Gift size={15} />
-          Priority access unlocked — you&apos;re at the front of the line.
+          Priority access unlocked. You&apos;re at the front of the line.
         </p>
       ) : (
         <p className="referral-share-goal">

@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import PageTransition from '@/components/PageTransition';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Darwin',
+  title: 'Privacy Policy: Darwin',
   description:
     'How Vesper Works collects, uses, and protects your personal information on Darwin, the campus marketplace.',
 };
 
 const LAST_UPDATED = 'May 27, 2026';
-const CONTACT_EMAIL = 'info@vesperworks.ca';
+const CONTACT_EMAIL = 'assistanceatdarwin@gmail.com';
 
 type Block =
   | { kind: 'p'; text: string }
@@ -80,7 +80,7 @@ const sections: Section[] = [
           { text: 'provide, operate, and maintain the marketplace and your account;' },
           { text: 'authenticate you and keep your session secure;' },
           { text: 'display your listings and profile to other users;' },
-          { text: 'send you transactional and service emails — for example, waitlist confirmations — through our email provider, Resend;' },
+          { text: 'send you transactional and service emails, such as waitlist confirmations, through our email provider, Resend;' },
           { text: 'process founding membership payments through Stripe;' },
           { text: 'detect, prevent, and address fraud, abuse, and security issues; and' },
           { text: 'understand how Darwin is used so that we can improve it.' },
@@ -97,7 +97,7 @@ const sections: Section[] = [
     body: [
       {
         kind: 'p',
-        text: 'Darwin is a marketplace, so some information is shared with other users by design. Your listings — including their photos, title, description, price, and the campus you select — are visible to other users. Your display name and school may also be shown alongside your listings.',
+        text: 'Darwin is a marketplace, so some information is shared with other users by design. Your listings, including their photos, title, description, price, and the campus you select, are visible to other users. Your display name and school may also be shown alongside your listings.',
       },
       {
         kind: 'p',
@@ -141,7 +141,7 @@ const sections: Section[] = [
     body: [
       {
         kind: 'p',
-        text: 'Darwin is intended for students at Canadian universities, but our service providers store and process data on servers located in the United States — for example, our database is hosted in a US region. As a result, your personal information may be transferred to, stored in, and processed in the United States and other countries, which may have data-protection laws different from those in your province. We take steps to ensure your information continues to be protected in accordance with this policy.',
+        text: 'Darwin is intended for students at Canadian universities, but our service providers store and process data on servers located in the United States. For example, our database is hosted in a US region. As a result, your personal information may be transferred to, stored in, and processed in the United States and other countries, which may have data-protection laws different from those in your province. We take steps to ensure your information continues to be protected in accordance with this policy.',
       },
     ],
   },
@@ -239,7 +239,7 @@ function renderBlock(block: Block, index: number) {
                   <strong className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {item.term}
                   </strong>
-                  {' — '}
+                  {': '}
                   {item.text}
                 </>
               ) : (

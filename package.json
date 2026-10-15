@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:boosts": "node --test tests/founding-boosts.test.mjs",
+    "test:launch": "node --test tests/launch-fixes.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.8",
@@ -28,10 +30,12 @@
     "react-easy-crop": "^6.0.2",
     "resend": "^6.12.3",
     "server-only": "^0.0.1",
+    "standardwebhooks": "1.0.0",
     "stripe": "^22.1.0",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",

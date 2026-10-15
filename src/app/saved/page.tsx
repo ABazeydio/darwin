@@ -6,7 +6,7 @@ import ListingCard from '@/components/ListingCard';
 import Link from 'next/link';
 import PageTransition from '@/components/PageTransition';
 import { createClient } from '@/lib/supabase/client';
-import { Listing } from '@/lib/data';
+import { Listing, Category, Condition } from '@/lib/data';
 
 export default function SavedPage() {
   const [savedListings, setSavedListings] = useState<Listing[]>([]);
@@ -27,26 +27,7 @@ export default function SavedPage() {
 
         const { data, error } = await supabase
           .from('saved_listings')
-          .select(`
-            listing_id,
-            listing:listings (
-              id,
-              title,
-              description,
-              price,
-              category,
-              condition,
-              campus,
-              image_url,
-              created_at,
-              seller:profiles (
-                id,
-                first_name,
-                full_name,
-                avatar_url
-              )
-            )
-          `)
+          .select('listing_id, listing:listings(*, seller:profiles(id, first_name, full_name, avatar_url, whitelist_tier))')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -56,26 +37,27 @@ export default function SavedPage() {
         }
 
         const mapped: Listing[] = (data ?? [])
-          .map((row: any) => {
-            const item = row.listing;
+          .map((row) => {
+            const item = Array.isArray(row.listing) ? row.listing[0] : row.listing;
             if (!item) return null;
-            const sellerMeta = item.seller || {};
+            const sellerMeta = (Array.isArray(item.seller) ? item.seller[0] : item.seller) || {};
             const sellerName = sellerMeta.full_name || sellerMeta.first_name || 'Student';
             return {
               id: item.id,
               title: item.title,
               price: item.price,
-              category: (item.category as any) || 'Other',
-              condition: (item.condition as any) || 'New',
+              category: (item.category as Category) || 'Other',
+              condition: (item.condition as Condition) || 'New',
               description: item.description || '',
               image: item.image_url || '/images/textbook.svg',
               seller: {
+                tier: sellerMeta.whitelist_tier,
                 id: sellerMeta.id || '',
                 name: sellerName,
                 avatar: sellerMeta.avatar_url || '/avatars/1.jpg',
-                rating: 0,
                 campus: item.campus || 'Main Campus',
               },
+              boostedUntil: item.boosted_until,
               createdAt: item.created_at,
               saved: true,
             };

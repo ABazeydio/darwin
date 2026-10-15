@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Toast from './Toast';
 
 const ERROR_MESSAGES: Record<string, string> = {
+  checkout_unavailable: 'Membership checkout is being prepared. Please try again shortly.',
+  unverified_purchase: 'This purchase could not be verified for your signed-in account.',
+  already_member: 'This membership is already active on your account.',
   sold_out: 'That tier is sold out. Try the other tier.',
   invalid_tier: 'Something went wrong with that selection. Try again.',
   checkout_failed: 'Checkout could not be started. Please try again.',
@@ -20,10 +23,13 @@ export default function WhitelistFeedback() {
   const error = searchParams.get('error');
 
   useEffect(() => {
-    if (error) {
-      setMessage(ERROR_MESSAGES[error] ?? 'Something went wrong.');
-      setVisible(true);
-    }
+    const timer = window.setTimeout(() => {
+      if (error) {
+        setMessage(ERROR_MESSAGES[error] ?? 'Something went wrong.');
+        setVisible(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [error]);
 
   const handleClose = () => {
