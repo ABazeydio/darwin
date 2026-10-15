@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 const LAST_UPDATED = 'May 27, 2026';
-const CONTACT_EMAIL = 'info@vesperworks.ca';
+const CONTACT_EMAIL = 'assistanceatdarwin@gmail.com';
 
 type Block =
   | { kind: 'p'; text: string }
